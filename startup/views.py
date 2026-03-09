@@ -203,12 +203,16 @@ def create_project(request):
 
             # Notify freelancers if project is open
             if project.assigned_to_freelancers:
-                freelancers = FreelancerProfile.objects.all()
+                freelancers = FreelancerProfile.objects.filter(domain=project.domain)
+                
+                if project.required_experience and project.required_experience != 'ANY':
+                    freelancers = freelancers.filter(experience_years=project.required_experience)
+
                 for f in freelancers:
                     Notification.objects.create(
                         user=f.user,
                         title=f"New Project Opportunity: {project.name}",
-                        message=f"A new project '{project.name}' is open for proposals."
+                        message=f"A new project '{project.name}' is open for proposals in {project.domain}."
                     )
 
             messages.success(request, "✅ Project created successfully!")

@@ -32,17 +32,19 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = [
-            'name', 'description', 'requirements_file',
+            'name', 'description', 'domain', 'requirements_file',
             'start_date', 'end_date', 'status',
-            'assigned_to_freelancers', 'employees_assigned'
+            'required_experience', 'assigned_to_freelancers', 'employees_assigned'
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter project name'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Project details...'}),
+            'domain': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter project domain'}),
             'requirements_file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            'required_experience': forms.Select(attrs={'class': 'form-select'}),
             'employees_assigned': forms.SelectMultiple(attrs={'class': 'form-control', 'size': 6}),
         }
 

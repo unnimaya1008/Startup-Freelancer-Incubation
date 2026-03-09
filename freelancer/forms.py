@@ -31,6 +31,8 @@ class FreelancerProfileForm(forms.ModelForm):
     class Meta:
         model = FreelancerProfile
         fields = [
+            'domain',
+            'experience_years',
             'contact_number',
             'bio',
             'hourly_rate',
@@ -39,6 +41,8 @@ class FreelancerProfileForm(forms.ModelForm):
             'resume',
         ]
         widgets = {
+            'domain': forms.TextInput(attrs={'placeholder': 'e.g., Web Development'}),
+            'experience_years': forms.Select(),
             'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Write a short bio...'}),
             'availability': forms.Select(),
         }

@@ -12,20 +12,25 @@
     <style>
         /* ===== THEMED CSS VARIABLES (Light-blue → White Gradient) ===== */
         :root {
-            --primary: #0f6fd6;        /* deep blue accent */
-            --primary-2: #2b8ef6;      /* lighter accent */
-            --primary-3: #60a5fa;      /* soft blue */
+            --primary: #0f6fd6;
+            /* deep blue accent */
+            --primary-2: #2b8ef6;
+            /* lighter accent */
+            --primary-3: #60a5fa;
+            /* soft blue */
             --bg-gradient-start: #ffffff;
-            --bg-gradient-end: #e8f4ff; /* pale blue */
-            --text: #072033;           /* dark blue-ish text */
+            --bg-gradient-end: #e8f4ff;
+            /* pale blue */
+            --text: #072033;
+            /* dark blue-ish text */
             --muted: #5c6b7a;
-            --sidebar-bg: linear-gradient(180deg, rgba(15,111,214,0.06), rgba(43,142,246,0.03));
+            --sidebar-bg: linear-gradient(180deg, rgba(15, 111, 214, 0.06), rgba(43, 142, 246, 0.03));
             --sidebar-text: #083056;
-            --sidebar-hover: rgba(15,111,214,0.10);
+            --sidebar-hover: rgba(15, 111, 214, 0.10);
             --sidebar-active: linear-gradient(90deg, var(--primary), var(--primary-2));
             --card-bg: #ffffff;
-            --card-shadow: 0 8px 24px rgba(11,30,60,0.04);
-            --border: rgba(7,32,50,0.06);
+            --card-shadow: 0 8px 24px rgba(11, 30, 60, 0.04);
+            --border: rgba(7, 32, 50, 0.06);
         }
 
         /* ===== BASE LAYOUT ===== */
@@ -67,17 +72,17 @@
             text-align: center;
             padding: 22px 12px;
             border-bottom: 1px solid rgba(7, 32, 50, 0.03);
-            background: linear-gradient(180deg, rgba(47,107,247,0.06), rgba(47,107,247,0.02));
+            background: linear-gradient(180deg, rgba(47, 107, 247, 0.06), rgba(47, 107, 247, 0.02));
         }
 
         .sidebar-header h2 {
             font-size: 1.25rem;
             color: var(--primary);
             letter-spacing: 0.4px;
-            display:flex;
-            align-items:center;
-            gap:8px;
-            justify-content:center;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
         }
 
         .sidebar nav {
@@ -122,15 +127,15 @@
             background: var(--sidebar-hover);
             color: var(--primary);
             transform: translateX(4px);
-            box-shadow: 0 6px 18px rgba(15,111,214,0.03);
+            box-shadow: 0 6px 18px rgba(15, 111, 214, 0.03);
         }
 
         .sidebar a.active {
             background: var(--sidebar-active);
             color: #fff;
-            border-left-color: rgba(255,255,255,0.25);
+            border-left-color: rgba(255, 255, 255, 0.25);
             transform: none;
-            box-shadow: 0 8px 24px rgba(15,111,214,0.08);
+            box-shadow: 0 8px 24px rgba(15, 111, 214, 0.08);
         }
 
         .sidebar-footer {
@@ -139,7 +144,7 @@
             font-size: 0.9rem;
             color: var(--muted);
             text-align: center;
-            background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.85));
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.85));
         }
 
         /* ===== MAIN CONTENT ===== */
@@ -153,8 +158,8 @@
 
         /* ===== NAVBAR ===== */
         .navbar {
-            background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.98));
-            box-shadow: 0 4px 16px rgba(11,30,60,0.03);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.98));
+            box-shadow: 0 4px 16px rgba(11, 30, 60, 0.03);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -169,9 +174,9 @@
         .navbar .left h1 {
             font-size: 1.4rem;
             color: var(--primary);
-            display:flex;
-            align-items:center;
-            gap:10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .menu-toggle {
@@ -194,10 +199,10 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: linear-gradient(90deg, rgba(15,111,214,0.03), rgba(43,142,246,0.02));
+            background: linear-gradient(90deg, rgba(15, 111, 214, 0.03), rgba(43, 142, 246, 0.02));
             padding: 6px 10px;
             border-radius: 10px;
-            border: 1px solid rgba(15,111,214,0.03);
+            border: 1px solid rgba(15, 111, 214, 0.03);
         }
 
         .navbar .right img {
@@ -206,7 +211,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #fff;
-            box-shadow: 0 4px 12px rgba(11,30,60,0.06);
+            box-shadow: 0 4px 12px rgba(11, 30, 60, 0.06);
         }
 
         .navbar .right a {
@@ -261,7 +266,9 @@
                 display: inline-block;
             }
 
-            .navbar .left h1 { font-size: 1.15rem; }
+            .navbar .left h1 {
+                font-size: 1.15rem;
+            }
         }
 
         @media (max-width: 640px) {
@@ -280,6 +287,17 @@
             body {
                 font-size: 15px;
             }
+        }
+
+        /* ===== NOTIFICATION BADGE ===== */
+        .notification-badge {
+            background-color: #ff3b30;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
         }
     </style>
 
@@ -328,6 +346,11 @@
                 <a href="{% url 'freelancer:freelancer_notifications' %}"
                     class="{% if request.resolver_match.url_name == 'freelancer_notifications' %}active{% endif %}">
                     <i class="fa-solid fa-bell"></i> Notifications
+                    {% for n in user.notifications.all %}
+                    {% if not n.read and forloop.first %}
+                    <span class="notification-badge" title="New Unread Notifications">!</span>
+                    {% endif %}
+                    {% endfor %}
                 </a>
             </div>
         </nav>

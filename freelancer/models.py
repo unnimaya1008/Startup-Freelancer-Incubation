@@ -13,27 +13,32 @@ class FreelancerProfile(models.Model):
     contact_number = models.CharField(max_length=20, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+
+    domain = models.CharField(max_length=50)   # ← ADD THIS LINE
+
     availability = models.CharField(
         max_length=50,
         choices=[('AVAILABLE', 'Available'), ('BUSY', 'Busy'), ('OFFLINE', 'Offline')],
         default='AVAILABLE'
     )
+
+    experience_years = models.CharField(
+        max_length=20,
+        choices=[
+            ('0-1', '0-1 Years'),
+            ('1-3', '1-3 Years'),
+            ('3-5', '3-5 Years'),
+            ('5+', '5+ Years'),
+        ],
+        default='0-1'
+    )
+
     profile_picture = models.ImageField(upload_to="freelancer/", blank=True, null=True)
     resume = models.FileField(blank=True, null=True)
     total_earnings = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    
-    # ✅ Correct: auto_now_add alone
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    # ✅ Correct: auto_now alone
     updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.full_name or self.user.username
-
-    class Meta:
-        verbose_name = "Freelancer Profile"
-        verbose_name_plural = "Freelancer Profiles"
 
 # # ------------------------------------------------
 # # 2️⃣ SKILLS

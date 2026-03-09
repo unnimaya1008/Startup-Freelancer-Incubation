@@ -7,6 +7,7 @@ class Project(models.Model):
     startup = models.ForeignKey(StartupProfile, on_delete=models.CASCADE, related_name="projects")
     name = models.CharField(max_length=200)
     description = models.TextField()
+    domain = models.CharField(max_length=50)
     requirements_file = models.FileField(upload_to='project_requirements/', blank=True, null=True)  # Local file storage
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
@@ -15,6 +16,18 @@ class Project(models.Model):
         ('ONGOING', 'Ongoing'),
         ('COMPLETED', 'Completed')
     ], default='PLANNED')
+    
+    required_experience = models.CharField(
+        max_length=20,
+        choices=[
+            ('ANY', 'Any Experience (All)'),
+            ('0-1', '0-1 Years'),
+            ('1-3', '1-3 Years'),
+            ('3-5', '3-5 Years'),
+            ('5+', '5+ Years'),
+        ],
+        default='ANY'
+    )
     
     assigned_to_freelancers = models.BooleanField(default=False)
     employees_assigned = models.ManyToManyField(Employee, blank=True, related_name='projects')

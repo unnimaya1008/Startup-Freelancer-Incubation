@@ -16,7 +16,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Poppins', sans-serif;
-            background-color: #b71c1c;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bbdefb 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -34,9 +34,9 @@
         }
 
         .login-wrapper img {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 15px;
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 20px;
         }
 
         h1 {
@@ -103,12 +103,13 @@
         .login-footer {
             margin-top: 15px;
             font-size: 0.9rem;
+            color: #333;
         }
 
         .login-footer a {
             color: #b71c1c;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .login-footer a:hover {
@@ -140,12 +141,13 @@
 
         <form method="post">
             {% csrf_token %}
-            {{ form.as_p }}
+            {{ form.username }}
+            {{ form.password }}
             <button type="submit">Login</button>
         </form>
 
         <div class="login-footer">
-            Back to home <a href="{% url 'index' %}">home</a>
+            Don't have an account? <a href="{% url 'index' %}">Sign Up</a>
         </div>
     </div>
 </body>
