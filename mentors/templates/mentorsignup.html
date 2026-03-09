@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign up — SubHub Mentor Portal</title>
+
+  <style>
+    :root {
+      /* Teal-only theme — no orange anywhere */
+      --bg-1: #f2fffb;
+      /* pale */
+      --bg-2: #e6fbf6;
+      /* soft aqua */
+      --accent-teal: #08a094;
+      /* primary */
+      --accent-teal-600: #067d73;
+      /* darker */
+      --muted: #637a78;
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --input-border: rgba(8, 160, 148, 0.12);
+      --focus-ring: rgba(8, 160, 148, 0.14);
+      --text: #0f2a28;
+      --field-radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color: var(--text)
+    }
+
+    body {
+      background: linear-gradient(140deg, var(--bg-1) 0%, var(--bg-2) 60%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    /* shell */
+    .signup-shell {
+      width: 100%;
+      max-width: 1024px;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 18px 48px rgba(10, 20, 20, 0.06);
+      overflow: hidden;
+    }
+
+    /* left hero */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .brand {
+      font-weight: 900;
+      color: var(--accent-teal);
+      font-size: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4
+    }
+
+    ul.tips {
+      margin: 12px 0 0 18px;
+      color: var(--muted)
+    }
+
+    /* form layout */
+    form {
+      width: 100%;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      color: var(--text);
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    /* redesigned fields */
+    .field {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border-radius: var(--field-radius);
+      border: 1px solid var(--input-border);
+      padding: 10px 12px;
+      transition: box-shadow .18s ease, border-color .18s ease, transform .12s ease;
+    }
+
+    .field input[type="text"],
+    .field input[type="email"],
+    .field input[type="password"],
+    .field input[type="number"],
+    .field input[type="url"],
+    .field textarea {
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 14px;
+      background: transparent;
+      color: var(--text);
+      padding: 6px 0;
+    }
+
+    .field:focus-within {
+      box-shadow: 0 6px 22px var(--focus-ring);
+      border-color: var(--accent-teal);
+      transform: translateY(-1px);
+    }
+
+    .field .icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.9;
+      flex: 0 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-teal-600);
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      padding-top: 6px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, var(--accent-teal), var(--accent-teal-600));
+      color: #fff;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+      box-shadow: 0 10px 30px rgba(8, 160, 148, 0.12);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--accent-teal-600);
+      border: 1px solid rgba(8, 160, 148, 0.12);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    /* password toggle */
+    .toggle-pass {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 6px;
+    }
+
+    /* responsive */
+    @media (max-width:980px) {
+      .signup-shell {
+        grid-template-columns: 1fr;
+        padding: 12px
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="signup-shell" role="main" aria-label="SubHub mentor signup">
+    <!-- LEFT HERO -->
+    <div class="panel hero" aria-hidden="false">
+      <div class="brand">SubHub Mentor Portal</div>
+      <h1>Become a mentor at SubHub</h1>
+      <p class="lead">Share practical expertise, mentor startups, and grow your credibility. Sessions are short and
+        focused — ideal for busy professionals.</p>
+
+      <div style="margin-top:12px">
+        <strong>Why join?</strong>
+        <ul class="tips">
+          <li>Curated startup requests</li>
+          <li>Flexible short sessions</li>
+          <li>Public mentor profiles & credibility</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:18px">
+        <div class="small">Have an existing account?</div>
+        <div style="margin-top:8px">
+          <a class="btn-ghost" href="{% url 'login' %}">Log in</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT FORM PANEL (standalone) -->
+    <div class="panel" aria-labelledby="signup-heading">
+      <h2 id="signup-heading" style="margin:0 0 6px 0">Create your mentor account</h2>
+      <p class="small" style="margin:0 0 14px 0">Quick — fill your account info and a short mentor profile.</p>
+
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if user_form.errors or profile_form.errors %}
+        <div
+          style="background-color: #fff1f0; border: 1px solid #ffa39e; color: #cf1322; padding: 15px; border-radius: var(--field-radius); margin-bottom: 20px; font-size: 13px;">
+          <strong style="display: block; margin-bottom: 8px;">Could not create account. Please check the
+            following:</strong>
+          <ul style="margin: 0; padding-left: 20px;">
+            {% for field in user_form %}
+            {% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+            {% for error in user_form.non_field_errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+            {% for field in profile_form %}
+            {% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+            {% for error in profile_form.non_field_errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <div class="form-grid">
+          <!-- username -->
+          <div>
+            <label for="{{ user_form.username.id_for_label }}">Username</label>
+            <div class="field">
+              <span class="icon" aria-hidden="true">
+                <!-- user icon -->
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-5 0-9 2-9 5v1h18v-1c0-3-4-5-9-5z" />
+                </svg>
+              </span>
+              {{ user_form.username }}
+            </div>
+          </div>
+
+          <!-- email -->
+          <div>
+            <label for="{{ user_form.email.id_for_label }}">Email</label>
+            <div class="field">
+              <span class="icon" aria-hidden="true">
+                <!-- mail icon -->
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path
+                    d="M2 6c0-1.1.9-2 2-2h16a2 2 0 0 1 2 2v.01L12 13 2 6.01V6zM2 8.99L12 16l10-7.01V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.99z" />
+                </svg>
+              </span>
+              {{ user_form.email }}
+            </div>
+          </div>
+
+          <!-- password1 -->
+          <div>
+            <label for="{{ user_form.password1.id_for_label }}">Password</label>
+            <div class="field">
+              <span class="icon" aria-hidden="true">
+                <!-- lock icon -->
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path
+                    d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v6h16v-6a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3H9z" />
+                </svg>
+              </span>
+              {{ user_form.password1 }}
+              <button type="button" class="toggle-pass" onclick="togglePassword(event, 'id_password1')">Show</button>
+            </div>
+            <div class="hint">Use at least 8 characters. Mix letters and numbers for a stronger password.</div>
+          </div>
+
+          <!-- password2 -->
+          <div>
+            <label for="{{ user_form.password2.id_for_label }}">Confirm password</label>
+            <div class="field">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path
+                    d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v6h16v-6a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zM9 10V7a3 3 0 0 1 6 0v3H9z" />
+                </svg>
+              </span>
+              {{ user_form.password2 }}
+              <button type="button" class="toggle-pass" onclick="togglePassword(event, 'id_password2')">Show</button>
+            </div>
+          </div>
+
+          <!-- expertise (full width) -->
+          <div class="full">
+            <label for="{{ profile_form.expertise_area.id_for_label }}">Expertise (comma-separated)</label>
+            <div class="field">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </span>
+              {{ profile_form.expertise_area }}
+            </div>
+            <div class="hint">e.g. SaaS growth, GTM strategy, Product management</div>
+          </div>
+
+          <!-- experience and linkedin -->
+          <div>
+            <label for="{{ profile_form.experience_years.id_for_label }}">Experience (years)</label>
+            <div class="field">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M19.07 4.93L12 12l-7.07-7.07 1.41-1.41L12 9.17l5.66-5.66z" />
+                </svg>
+              </span>
+              {{ profile_form.experience_years }}
+            </div>
+          </div>
+
+          <div>
+            <label for="{{ profile_form.linkedin_profile.id_for_label }}">LinkedIn (optional)</label>
+            <div class="field">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path
+                    d="M4.98 3.5C3.88 3.5 3 4.38 3 5.48s.88 1.98 1.98 1.98S7 6.58 7 5.48 6.08 3.5 4.98 3.5zM3.5 8.98h3V21h-3zM9.5 8.98h2.88v1.63h.04c.4-.76 1.38-1.63 2.84-1.63 3.04 0 3.6 2 3.6 4.6V21h-3v-5.04c0-1.2-.02-2.74-1.68-2.74-1.68 0-1.94 1.32-1.94 2.66V21h-3z" />
+                </svg>
+              </span>
+              {{ profile_form.linkedin_profile }}
+            </div>
+          </div>
+
+        </div> <!-- end grid -->
+
+        <div class="actions">
+          <button class="btn-primary" type="submit">Create account</button>
+          <a class="btn-ghost" href="{% url 'login' %}">Back to home</a>
+        </div>
+
+        <p class="small" style="margin-top:10px">We respect your privacy. You can update your profile later.</p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // toggle password visibility by HTML id
+    function togglePassword(e, inputId) {
+      const btn = e.currentTarget;
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = 'Hide';
+      } else {
+        input.type = 'password';
+        btn.textContent = 'Show';
+      }
+    }
+
+    // Ensure Django's default IDs are used; fallback if names different
+    (function ensureIds() {
+      // some Django forms may render different ids; try to normalize
+      const map = [
+        { name: 'password1', id: 'id_password1' },
+        { name: 'password2', id: 'id_password2' }
+      ];
+      map.forEach(m => {
+        if (!document.getElementById(m.id)) {
+          const el = document.querySelector('input[name="' + m.name + '"]');
+          if (el) el.id = m.id;
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>

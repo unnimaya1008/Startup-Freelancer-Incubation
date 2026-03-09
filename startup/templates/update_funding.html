@@ -1,0 +1,121 @@
+{% extends 'base_startup.html' %}
+
+{% block content %}
+<div class="panel">
+    <h2>Update Funding Round</h2>
+
+    {% if funding.status == 'APPROVED' %}
+    <p class="text-danger">
+        <span class="badge approved">APPROVED</span>
+        This funding request has been approved and cannot be edited.
+    </p>
+    {% elif funding.status == 'REJECTED' %}
+    <p class="text-warning">
+        <span class="badge rejected">REJECTED</span>
+        This funding request was rejected. You can update and resend it for approval.
+    </p>
+    {% elif funding.status == 'PENDING' %}
+    <p class="text-info">
+        <span class="badge pending">PENDING</span>
+        This funding request is pending investor approval. You may update it before it's reviewed.
+    </p>
+    {% endif %}
+
+    <form method="POST" id="fundingForm">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        {% if funding.status != 'APPROVED' %}
+        <button type="submit" class="btn btn-success">
+            {% if funding.status == 'REJECTED' %}Resend{% else %}Update{% endif %}
+        </button>
+        {% endif %}
+    </form>
+</div>
+
+<style>
+    .panel {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #f7f7f7;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    input,
+    select {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+
+    .btn-success {
+        background: #1976d2;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-success:hover {
+        background: #1565c0;
+    }
+
+    .text-danger {
+        color: #d32f2f;
+        font-weight: bold;
+    }
+
+    .text-warning {
+        color: #fbc02d;
+        font-weight: bold;
+    }
+
+    .text-info {
+        color: #0288d1;
+        font-weight: bold;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85em;
+        margin-right: 6px;
+    }
+
+    .badge.approved {
+        background-color: #388e3c;
+    }
+
+    .badge.rejected {
+        background-color: #d32f2f;
+    }
+
+    .badge.pending {
+        background-color: #0288d1;
+    }
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+</style>
+{% endblock %}

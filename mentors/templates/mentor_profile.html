@@ -1,0 +1,212 @@
+{% extends "mentor_base.html" %}
+
+{% block title %}Your Profile — SubHub Mentor Portal{% endblock %}
+
+{% block page_title %}Your Profile{% endblock %}
+{% block page_subtitle %}Manage and review your mentor information{% endblock %}
+
+{% block content %}
+<style>
+  .profile-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .profile-card {
+    background: var(--card-bg);
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.04);
+    max-width: 760px;
+  }
+
+  .profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .profile-left {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .profile-img {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(8,160,148,0.15);
+  }
+
+  .avatar-fallback {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: rgba(8,160,148,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: 900;
+    color: var(--accent-teal);
+  }
+
+  .name {
+    font-size: 20px;
+    font-weight: 900;
+  }
+
+  .email {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .edit-btn {
+    background: transparent;
+    border: 1px solid rgba(8,160,148,0.12);
+    padding: 10px 16px;
+    border-radius: 10px;
+    color: var(--accent-teal);
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .edit-btn:hover {
+    background: rgba(8,160,148,0.06);
+  }
+
+  .meta-grid {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .meta-item {
+    border: 1px solid rgba(8,160,148,0.06);
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .meta-label {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .meta-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--accent-teal);
+    margin-top: 4px;
+  }
+
+  .section-title {
+    font-weight: 700;
+    margin-top: 20px;
+  }
+
+  .profile-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .btn-primary {
+    background: var(--accent-teal);
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .btn-flat {
+    background: transparent;
+    border: 1px solid rgba(8,160,148,0.1);
+    padding: 10px 16px;
+    border-radius: 8px;
+    color: var(--accent-teal);
+    font-weight: 700;
+    text-decoration: none;
+  }
+</style>
+
+<div class="profile-wrapper">
+
+  <div class="profile-card">
+
+    <!-- HEADER WITH EDIT BUTTON -->
+    <div class="profile-header">
+
+      <div class="profile-left">
+        {% if mentor_profile.profile_image %}
+          <img src="{{ mentor_profile.profile_image.url }}" class="profile-img" alt="Profile image">
+        {% else %}
+          <div class="avatar-fallback">
+            {{ mentor_profile.user.first_name|default:mentor_profile.user.username|slice:":1"|upper }}
+          </div>
+        {% endif %}
+
+        <div>
+          <div class="name">
+            {{ mentor_profile.user.first_name|default:mentor_profile.user.username }}
+          </div>
+          <div class="email">{{ mentor_profile.user.email }}</div>
+        </div>
+      </div>
+
+      <!-- EDIT BUTTON -->
+      <a class="edit-btn" href="{% url 'mentors:mentor_profile_edit' %}">
+        ✏️ Edit Profile
+      </a>
+
+    </div>
+
+    <!-- META INFO -->
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Expertise</div>
+        <div class="meta-value">{{ mentor_profile.expertise_area|default:"—" }}</div>
+      </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Experience</div>
+        <div class="meta-value">{{ mentor_profile.experience_years }} years</div>
+      </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Total Sessions</div>
+        <div class="meta-value">{{ sessions|length }}</div>
+      </div>
+    </div>
+
+    <!-- LINKEDIN -->
+    <div class="section-title">LinkedIn</div>
+    {% if mentor_profile.linkedin_profile %}
+      <a href="{{ mentor_profile.linkedin_profile }}" target="_blank">
+        {{ mentor_profile.linkedin_profile }}
+      </a>
+    {% else %}
+      <div class="muted">Not provided</div>
+    {% endif %}
+
+    <!-- ACTION BUTTONS -->
+    <div class="profile-actions">
+      <a class="btn-primary" href="{% url 'mentors:mentorship_sessions' %}">
+        View Sessions
+      </a>
+      <a class="btn-flat" href="{% url 'mentors:dashboard' %}">
+        Back to Dashboard
+      </a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

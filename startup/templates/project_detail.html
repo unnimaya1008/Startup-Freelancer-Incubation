@@ -1,0 +1,239 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Project Details - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+    <!-- Project Card -->
+    <div class="project-card">
+        <!-- Breadcrumb / Back Link -->
+        <div class="breadcrumb">
+            <a href="{% url 'startup:startup_projects' %}">← Back to Projects</a>
+        </div>
+
+        <!-- Header -->
+        <div class="card-header">
+            <h1>{{ project.name }}</h1>
+            <div class="card-actions">
+                <a href="{% url 'startup:update_project' project.id %}" class="btn edit-btn">Edit</a>
+                <a href="{% url 'startup:delete_project' project.id %}" class="btn delete-btn">Delete</a>
+            </div>
+        </div>
+
+        <!-- Status Badge -->
+        <div
+            class="status-badge {% if project.status == 'PLANNED' %}planned{% elif project.status == 'ONGOING' %}ongoing{% elif project.status == 'COMPLETED' %}completed{% endif %}">
+            {{ project.get_status_display }}
+        </div>
+
+        <!-- Project Info -->
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">Start Date:</span>
+                <span>{{ project.start_date }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">End Date:</span>
+                <span>{{ project.end_date|default:"—" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Assigned to Freelancers:</span>
+                <span>{{ project.assigned_to_freelancers|yesno:"Yes,No" }}</span>
+            </div>
+            {% if not project.assigned_to_freelancers %}
+            <div class="info-item full-width">
+                <span class="label">Assigned Employees:</span>
+                <span>
+                    {% for emp in project.employees_assigned.all %}
+                    {{ emp.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}None{% endfor %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Description -->
+        <div class="section">
+            <span class="label">Description:</span>
+            <p>{{ project.description }}</p>
+        </div>
+
+        <!-- Requirements File -->
+        {% if project.requirements_file %}
+        <div class="section">
+            <span class="label">Requirements File:</span>
+            <a href="{{ project.requirements_file.url }}" target="_blank" download>View File</a>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<style>
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    /* Page Container */
+    .page-container {
+        padding: 50px 20px;
+        min-height: 100vh;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    /* Project Card */
+    .project-card {
+        background: #fff;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        max-width: 800px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb a {
+        font-size: 0.95rem;
+        color: #007bff;
+        text-decoration: none;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    /* Card Header */
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .card-header h1 {
+        font-size: 2rem;
+        color: #222;
+        margin: 0;
+    }
+
+    .card-actions .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        margin-left: 10px;
+        color: #fff;
+        transition: 0.2s;
+    }
+
+    .edit-btn {
+        background-color: #007bff;
+    }
+
+    .edit-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+    }
+
+    .delete-btn:hover {
+        background-color: #b02a37;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #fff;
+        width: fit-content;
+    }
+
+    .status-badge.planned {
+        background-color: #6c757d;
+    }
+
+    .status-badge.ongoing {
+        background-color: #fd7e14;
+    }
+
+    .status-badge.completed {
+        background-color: #28a745;
+    }
+
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-item.full-width {
+        grid-column: span 2;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+    }
+
+    /* Sections */
+    .section {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .section p,
+    .section a {
+        margin-top: 5px;
+        color: #333;
+        line-height: 1.6;
+        text-decoration: none;
+    }
+
+    .section a {
+        color: #007bff;
+    }
+
+    .section a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media(max-width: 700px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .card-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .card-actions .btn {
+            margin: 5px 0 0 0;
+        }
+    }
+</style>
+{% endblock %}

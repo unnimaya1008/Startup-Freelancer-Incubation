@@ -1,0 +1,161 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Update Profile{% endblock %}
+
+{% block content %}
+<section class="update-profile-section">
+    <div class="update-profile-card">
+
+        <h2>✏️ Update Profile</h2>
+
+        <div class="profile-wrapper">
+
+            <!-- Profile Picture -->
+            <div class="profile-image">
+                {% if profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="Profile Picture">
+                {% else %}
+                <div class="placeholder">👤</div>
+                {% endif %}
+            </div>
+
+            <!-- Profile Form -->
+            <div class="profile-form">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- First & Last Name -->
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ request.user.first_name }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ request.user.last_name }}">
+                    </div>
+
+                    <!-- Model Form Fields -->
+                    {{ form.as_p }}
+
+                    <button type="submit" class="btn-update">Update Profile</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+    .update-profile-section {
+        max-width: 900px;
+        margin: 50px auto;
+        padding: 15px;
+    }
+
+    .update-profile-card {
+        background: #fff;
+        padding: 30px 25px;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .update-profile-card h2 {
+        text-align: center;
+        color: #1976d2;
+        margin-bottom: 30px;
+        font-size: 1.8rem;
+    }
+
+    .profile-wrapper {
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
+
+    .profile-image {
+        flex: 1;
+        text-align: center;
+    }
+
+    .profile-image img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 12px;
+        /* square with rounded corners */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .profile-image .placeholder {
+        width: 150px;
+        height: 150px;
+        background: #e3f2fd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .profile-form {
+        flex: 2;
+    }
+
+    .profile-form .form-group {
+        margin-bottom: 15px;
+    }
+
+    .profile-form label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .profile-form input,
+    .profile-form textarea,
+    .profile-form select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 0.95rem;
+        transition: 0.2s;
+    }
+
+    .profile-form input:focus,
+    .profile-form textarea:focus,
+    .profile-form select:focus {
+        border-color: #1976d2;
+        outline: none;
+        box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
+    }
+
+    .btn-update {
+        background: #1976d2;
+        color: #fff;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.2s;
+    }
+
+    .btn-update:hover {
+        background: #1565c0;
+    }
+
+    @media(max-width:768px) {
+        .profile-wrapper {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-form {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

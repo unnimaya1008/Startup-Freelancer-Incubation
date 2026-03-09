@@ -1,0 +1,134 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+    <div class="profile-card">
+        <h2 style="text-align:center;color:#1976d2;margin-bottom:25px;">👤 My Profile</h2>
+
+        <form method="POST" enctype="multipart/form-data" class="profile-form">
+            {% csrf_token %}
+
+            <!-- Profile Picture -->
+            <div style="text-align:center;margin-bottom:20px;">
+                {% if profile and profile.profile_picture %}
+                <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="profile-img"
+                    id="profile-img-preview">
+                {% else %}
+                <div class="profile-placeholder" id="profile-img-preview">👤</div>
+                {% endif %}
+                <input type="file" name="profile_picture" id="profile_picture" style="display:none;">
+            </div>
+
+            <!-- First Name -->
+            <label for="first_name"><strong>First Name</strong></label>
+            <input type="text" name="first_name" value="{{ request.user.first_name }}" readonly>
+
+            <!-- Last Name -->
+            <label for="last_name"><strong>Last Name</strong></label>
+            <input type="text" name="last_name" value="{{ request.user.last_name }}" readonly>
+
+            <!-- Email -->
+            <label for="email"><strong>Email</strong></label>
+            <input type="text" value="{{ request.user.email }}" readonly style="background:#f0f0f0;">
+
+            <!-- Profile fields -->
+            {% for field in form %}
+            <label for="{{ field.id_for_label }}"><strong>{{ field.label }}</strong></label>
+            {{ field }}
+            <script>
+                // Make Django form fields readonly initially
+                document.addEventListener('DOMContentLoaded', function () {
+                    document.getElementById('{{ field.id_for_label }}').setAttribute('readonly', 'readonly');
+                    if (document.getElementById('{{ field.id_for_label }}').tagName === 'SELECT') {
+                        document.getElementById('{{ field.id_for_label }}').setAttribute('disabled', 'disabled');
+                    }
+                });
+            </script>
+            {% endfor %}
+
+            <button type="button" class="btn btn-primary" id="edit-btn">Edit Profile</button>
+            <button type="submit" class="btn btn-primary" id="update-btn" style="display:none;">Update Profile</button>
+        </form>
+    </div>
+</section>
+
+<style>
+    .profile-section {
+        max-width: 700px;
+        margin: 50px auto;
+    }
+
+    .profile-card {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .profile-form input[type="text"],
+    .profile-form select,
+    .profile-form textarea,
+    .profile-form input[type="file"] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 15px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .profile-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #e3f2fd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto;
+    }
+
+    .btn-primary {
+        width: 100%;
+        background: #1976d2;
+        color: #fff;
+        padding: 10px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+        background: #1565c0;
+    }
+</style>
+
+<script>
+    // Toggle edit mode
+    document.getElementById('edit-btn').addEventListener('click', function () {
+        // Make all input/select fields editable
+        const inputs = document.querySelectorAll('.profile-form input, .profile-form select, .profile-form textarea');
+        inputs.forEach(field => {
+            field.removeAttribute('readonly');
+            field.removeAttribute('disabled');
+        });
+
+        // Show file input
+        document.getElementById('profile_picture').style.display = 'block';
+
+        // Toggle buttons
+        document.getElementById('edit-btn').style.display = 'none';
+        document.getElementById('update-btn').style.display = 'block';
+    });
+</script>
+{% endblock %}

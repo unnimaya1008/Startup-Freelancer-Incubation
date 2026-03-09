@@ -1,0 +1,324 @@
+{% extends 'base_startup.html' %}
+
+{% block title %}Projects - {{ profile.startup_name }}{% endblock %}
+{% block active_projects %}active{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <h2>📂 Projects</h2>
+    <p>Manage and view all your startup projects.</p>
+    <a href="{% url 'startup:create_project' %}" class="btn create-project">➕ Create Project</a>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <button class="filter-btn active" data-status="all">All</button>
+    <button class="filter-btn" data-status="planned">Planned</button>
+    <button class="filter-btn" data-status="ongoing">Ongoing</button>
+    <button class="filter-btn" data-status="completed">Completed</button>
+</div>
+
+<!-- Projects Cards -->
+<div class="projects-cards">
+    {% for project in projects %}
+    <div class="project-card" data-status="{{ project.status|lower|slugify }}">
+        <div class="card-header">
+            <h3>{{ project.name }}</h3>
+            <span class="status {{ project.status|lower|slugify }}">{{ project.status }}</span>
+        </div>
+
+        <div class="card-body">
+            <p><strong>Start Date:</strong> {{ project.start_date|date:"d M Y" }}</p>
+            <p><strong>End Date:</strong> {{ project.end_date|date:"d M Y" }}</p>
+
+            <p><strong>Team Members:</strong></p>
+            <ul class="team-list">
+                {% if project.employees_assigned.exists %}
+                {% for emp in project.employees_assigned.all %}
+                <li>👔 {{ emp.name }}</li>
+                {% endfor %}
+                {% endif %}
+                {% if project.assignment and project.assignment.freelancer %}
+                <li>💼 {{ project.assignment.freelancer.user.username }}</li>
+                {% endif %}
+                {% if not project.employees_assigned.exists and not project.assignment.freelancer %}
+                <li>No members assigned yet.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="card-actions">
+            <a href="{% url 'startup:project_detail' project.id %}" class="btn view">View</a>
+            <a href="{% url 'startup:update_project' project.id %}" class="btn edit">Edit</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="no-projects-message">No projects found for this filter.</div>
+
+<!-- Styles -->
+<style>
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    /* Page Header */
+    .page-header {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .page-header p {
+        margin: 5px 0 0;
+        color: #555;
+    }
+
+    .btn.create-project {
+        background: #c62828;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+
+    .btn.create-project:hover {
+        background: #e53935;
+    }
+
+    /* Filter Buttons */
+    .filter-bar {
+        margin-bottom: 20px;
+    }
+
+    .filter-btn {
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+        padding: 6px 14px;
+        margin-right: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .filter-btn.active,
+    .filter-btn:hover {
+        background: #c62828;
+        color: #fff;
+    }
+
+    /* Project Cards Grid */
+    .projects-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+        position: relative;
+    }
+
+    /* Individual Card */
+    .project-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+        opacity: 1;
+    }
+
+    .project-card.hidden {
+        opacity: 0;
+        transform: scale(0.98);
+        pointer-events: none;
+        height: 0;
+        margin: 0;
+        padding: 0;
+    }
+
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Card Header & Status */
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .status {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.8rem;
+    }
+
+    .status.planned {
+        background: #1565c0;
+    }
+
+    .status.ongoing {
+        background: #fb8c00;
+    }
+
+    .status.completed {
+        background: #43a047;
+    }
+
+    /* Card Body */
+    .card-body p {
+        margin: 5px 0;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .team-list {
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 0;
+    }
+
+    .team-list li {
+        background: #f8f8f8;
+        padding: 6px 10px;
+        border-radius: 8px;
+        display: inline-block;
+        margin-right: 6px;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+        color: #333;
+    }
+
+    /* Card Actions Buttons */
+    .card-actions {
+        margin-top: 10px;
+    }
+
+    .btn {
+        padding: 5px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-right: 5px;
+        transition: 0.2s;
+    }
+
+    .btn.view {
+        background: #43a047;
+        color: #fff;
+    }
+
+    .btn.view:hover {
+        background: #388e3c;
+    }
+
+    .btn.edit {
+        background: #fb8c00;
+        color: #fff;
+    }
+
+    .btn.edit:hover {
+        background: #f57c00;
+    }
+
+    /* No Projects Message */
+    .no-projects-message {
+        grid-column: 1/-1;
+        text-align: center;
+        font-size: 1rem;
+        color: #555;
+        padding: 20px 0;
+        display: none;
+    }
+
+    /* Responsive */
+    @media(max-width: 850px) {
+        .main-content {
+            margin-left: 70px;
+            padding: 15px;
+        }
+    }
+
+    @media(max-width: 600px) {
+        .projects-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn.create-project {
+            margin-top: 10px;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Filter Projects with animation
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const projectCards = document.querySelectorAll('.project-card');
+        const noProjectsMessage = document.querySelector('.no-projects-message');
+
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Toggle active class
+                filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const status = btn.dataset.status.toLowerCase();
+                let anyVisible = false;
+
+                projectCards.forEach(card => {
+                    if (status === 'all' || card.dataset.status === status) {
+                        card.classList.remove('hidden');
+                        anyVisible = true;
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                noProjectsMessage.style.display = anyVisible ? 'none' : 'block';
+            });
+        });
+
+        // Trigger initial filter
+        document.querySelector('.filter-btn.active').click();
+    });
+</script>
+{% endblock %}

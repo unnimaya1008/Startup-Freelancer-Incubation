@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer Sign Up</title>
+    {% load static %}
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
+        /* Container for the whole page */
+        .signup-container {
+            display: flex;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Card */
+        .signup-card {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Card title */
+        .signup-card h3 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-bottom: 30px;
+        }
+
+        /* Two-column layout for form fields */
+        .form-columns {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Each column */
+        .form-column {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        /* Form elements */
+        .signup-card input,
+        .signup-card select,
+        .signup-card textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        /* Submit button */
+        .signup-card button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .signup-card button:hover {
+            background: #1e3a8a;
+        }
+
+        .signup-card small {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #6b7280;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-columns {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="signup-container">
+        <div class="signup-card">
+            <h3>📝 Freelancer Sign Up</h3>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% if user_form.errors or profile_form.errors %}
+                <div
+                    style="background-color: #ffe6e6; border: 1px solid #ff4d4d; color: #cc0000; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+                    <strong style="display: block; margin-bottom: 8px;">Registration Failed. Please correct the
+                        following errors:</strong>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        {% for field in user_form %}
+                        {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                        {% for error in user_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                        {% for field in profile_form %}
+                        {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                        {% for error in profile_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                <div class="form-columns">
+                    <!-- Left Column: Account Info -->
+                    <div class="form-column">
+                        <h4>Account Information</h4>
+                        {{ user_form.username.label_tag }}
+                        {{ user_form.username }}
+                        {{ user_form.first_name.label_tag }}
+                        {{ user_form.first_name }}
+                        {{ user_form.last_name.label_tag }}
+                        {{ user_form.last_name }}
+                        {{ user_form.email.label_tag }}
+                        {{ user_form.email }}
+                        {{ user_form.password1.label_tag }}
+                        {{ user_form.password1 }}
+                        {{ user_form.password2.label_tag }}
+                        {{ user_form.password2 }}
+                    </div>
+
+                    <!-- Right Column: Profile Details -->
+                    <div class="form-column">
+                        <h4>Profile Details</h4>
+                        {{ profile_form.domain.label_tag }}
+                        {{ profile_form.domain }}
+                        {{ profile_form.experience_years.label_tag }}
+                        {{ profile_form.experience_years }}
+                        {{ profile_form.bio.label_tag }}
+                        {{ profile_form.bio }}
+                        {{ profile_form.profile_picture.label_tag }}
+                        {{ profile_form.profile_picture }}
+                        {{ profile_form.hourly_rate.label_tag }}
+                        {{ profile_form.hourly_rate }}
+                        {{ profile_form.availability.label_tag }}
+                        {{ profile_form.availability }}
+                    </div>
+                </div>
+
+                <button type="submit">Create My Account</button>
+                <small>Already have an account? <a href="{% url 'login' %}">Login here</a></small>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

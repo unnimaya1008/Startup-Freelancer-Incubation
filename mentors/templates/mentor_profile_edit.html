@@ -1,0 +1,135 @@
+{% extends "mentor_base.html" %}
+
+{% block title %}Edit Profile — SubHub Mentor Portal{% endblock %}
+
+{% block page_title %}Edit Profile{% endblock %}
+{% block page_subtitle %}Update your public mentor information{% endblock %}
+
+{% block content %}
+<style>
+  .edit-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 14px 36px rgba(0,0,0,0.04);
+  }
+
+  .image-preview {
+    margin-bottom: 16px;
+  }
+
+  .image-preview img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(8,160,148,0.15);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width:780px){
+    .row { grid-template-columns: 1fr; }
+  }
+
+  .form-field {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .input-base {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.06);
+    font-size: 14px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-primary {
+    background: var(--accent-teal);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+  }
+
+  .btn-ghost {
+    border: 1px solid rgba(8,160,148,0.1);
+    color: var(--accent-teal);
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+  }
+</style>
+
+<div class="edit-wrapper">
+  <div class="card">
+
+    <h2>Edit Profile</h2>
+    <p class="muted">Update your mentor information below.</p>
+
+    {% if form.instance.profile_image %}
+      <div class="image-preview">
+        <img src="{{ form.instance.profile_image.url }}" alt="Current profile image">
+      </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="row">
+        {% for field in form %}
+          {% if not field.is_hidden %}
+            <div class="form-field">
+              <label for="{{ field.id_for_label }}">
+                {{ field.label }}{% if field.field.required %} *{% endif %}
+              </label>
+              {{ field }}
+              {% if field.errors %}
+                <small style="color:#b23a3a;">{{ field.errors|striptags }}</small>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" type="submit">Save Changes</button>
+        <a class="btn-ghost" href="{% url 'mentors:mentor_profile' %}">Cancel</a>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll("input, textarea").forEach(el => {
+    if (el.type !== "file") {
+      el.classList.add("input-base");
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends 'base_startup.html' %}
+{% block title %}Proposals for {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h2 class="page-title">Proposals for: {{ project.name }}</h2>
+    <p class="project-status">
+        Status: <span class="status {{ project.status|lower }}">{{ project.get_status_display }}</span>
+    </p>
+
+    {% if proposals %}
+    <div class="proposals-grid">
+        {% for p in proposals %}
+        <div
+            class="proposal-card {% if p.status == 'PENDING' %}pending{% elif p.status == 'APPROVED' %}approved{% else %}rejected{% endif %}">
+            <div class="proposal-header">
+                <h3>{{ p.freelancer.user.username }}</h3>
+                <span class="status-badge">{{ p.get_status_display }}</span>
+            </div>
+
+            {% if p.status == 'REJECTED' and p.rejection_note %}
+            <p class="rejection-note"><strong>Rejection Note:</strong> {{ p.rejection_note }}</p>
+            {% endif %}
+
+            <div class="proposal-body">
+                <p><strong>Proposal:</strong><br>{{ p.proposal_text|linebreaksbr }}</p>
+                <p><strong>Attachment:</strong>
+                    {% if p.file %}<a href="{{ p.file.url }}" target="_blank">Download</a>{% else %}N/A{% endif %}
+                </p>
+                <p><strong>Timeline:</strong> {{ p.expected_timeline|default:"-" }}</p>
+                <p><strong>Payment:</strong> {{ p.expected_payment|default:"-" }}</p>
+                <p><strong>Submitted:</strong> {{ p.submitted_at|date:"M d, Y H:i" }}</p>
+            </div>
+
+            {% if p.status == 'PENDING' %}
+            <textarea class="rejection-note-input" placeholder="Enter rejection note"></textarea>
+            <div class="proposal-actions">
+                <button class="btn approve-btn" data-id="{{ p.id }}">✅ Approve</button>
+                <button class="btn reject-btn" data-id="{{ p.id }}">❌ Reject</button>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-proposals">No proposals submitted yet.</p>
+    {% endif %}
+</div>
+
+<!-- AJAX Approve/Reject -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const showMessage = (msg, success = true) => {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            div.style.cssText = 'position:fixed;top:20px;right:20px;padding:10px 20px;border-radius:6px;color:#fff;z-index:9999;' +
+                `background-color:${success ? '#28a745' : '#c62828'}`;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        document.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pid = btn.dataset.id;
+                fetch("{% url 'startup:approve_proposal' 0 %}".replace('0', pid), {
+                    method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        showMessage(data.message, true);
+                        const card = btn.closest('.proposal-card');
+                        card.classList.replace('pending', 'approved');
+                        card.querySelector('.proposal-actions').remove();
+                        const noteInput = card.querySelector('.rejection-note-input'); if (noteInput) noteInput.remove();
+                        card.querySelector('.status-badge').textContent = 'Approved';
+                    } else showMessage(data.message, false);
+                });
+            });
+        });
+
+        document.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pid = btn.dataset.id;
+                const note = btn.closest('.proposal-card').querySelector('.rejection-note-input').value;
+                fetch("{% url 'startup:reject_proposal' 0 %}".replace('0', pid), {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new URLSearchParams({ 'rejection_note': note })
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        showMessage(data.message, false);
+                        const card = btn.closest('.proposal-card');
+                        card.classList.replace('pending', 'rejected');
+                        card.querySelector('.proposal-actions').remove();
+                        const noteInput = card.querySelector('.rejection-note-input'); if (noteInput) noteInput.remove();
+                        card.querySelector('.status-badge').textContent = 'Rejected';
+                    } else showMessage(data.message, false);
+                });
+            });
+        });
+    });
+</script>
+
+<style>
+    .page-container {
+        padding: 30px;
+        background: #f5f6fa;
+        min-height: 100vh;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+
+    .project-status {
+        margin-bottom: 20px;
+        font-weight: 500;
+    }
+
+    .project-status .status {
+        padding: 4px 10px;
+        border-radius: 12px;
+        color: #fff;
+    }
+
+    .status.planned {
+        background: #f39c12;
+    }
+
+    .status.ongoing {
+        background: #3498db;
+    }
+
+    .status.completed {
+        background: #27ae60;
+    }
+
+    .proposals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+    .proposal-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        transition: 0.2s;
+    }
+
+    .proposal-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .proposal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .proposal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #34495e;
+    }
+
+    .status-badge {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 12px;
+        color: #fff;
+    }
+
+    .proposal-card.pending .status-badge {
+        background: #f39c12;
+    }
+
+    .proposal-card.approved .status-badge {
+        background: #28a745;
+    }
+
+    .proposal-card.rejected .status-badge {
+        background: #c62828;
+    }
+
+    .proposal-body p {
+        margin: 5px 0;
+        font-size: 0.95rem;
+        color: #555;
+    }
+
+    .proposal-actions {
+        margin-top: 12px;
+    }
+
+    .proposal-actions .btn {
+        background: #3498db;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+    .proposal-actions .btn:hover {
+        opacity: 0.9;
+    }
+
+    .rejection-note-input {
+        width: 100%;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 8px;
+        resize: none;
+    }
+
+    .rejection-note {
+        font-style: italic;
+        color: #c62828;
+        margin-bottom: 8px;
+    }
+
+    .no-proposals {
+        text-align: center;
+        font-size: 1.1rem;
+        color: #888;
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}

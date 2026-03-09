@@ -1,0 +1,131 @@
+{% extends "base_freelancer.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<section class="notifications-wrapper">
+
+    <header class="page-header">
+        <div>
+            <h2>🔔 Notifications</h2>
+            <p class="muted">All updates related to your projects and activities</p>
+        </div>
+    </header>
+
+    {% if notifications %}
+    <div class="notifications-list">
+        {% for note in notifications %}
+        <div class="notification-card {% if not note.read %}unread{% endif %}">
+
+            <div class="note-content">
+                <h4>{{ note.title|default:"Notification" }}</h4>
+                <p>{{ note.message }}</p>
+                <span class="time">
+                    {{ note.created_at|date:"d M Y, H:i" }}
+                </span>
+            </div>
+
+            {% if not note.read %}
+            <form method="post"
+                  action="{% url 'freelancer:mark_notification_read' note.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="btn-read">
+                    Mark as Read
+                </button>
+            </form>
+            {% else %}
+            <span class="read-badge">Read</span>
+            {% endif %}
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-box">
+        <p>No notifications available.</p>
+    </div>
+    {% endif %}
+
+</section>
+
+<style>
+.notifications-wrapper{
+    max-width: 900px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.page-header h2{
+    margin-bottom: 4px;
+    color: #1976d2;
+}
+
+.notifications-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.notification-card{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    background: #fff;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.notification-card.unread{
+    background: #eaf3ff;
+    border-left: 4px solid #1976d2;
+}
+
+.note-content h4{
+    margin: 0;
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+.note-content p{
+    margin: 6px 0;
+    color: #444;
+}
+
+.time{
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.btn-read{
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.btn-read:hover{
+    background: #1565c0;
+}
+
+.read-badge{
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+.empty-box{
+    text-align: center;
+    padding: 30px;
+    border: 1px dashed #ccc;
+    border-radius: 12px;
+    color: #555;
+}
+</style>
+{% endblock %}

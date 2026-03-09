@@ -1,0 +1,263 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}My Skills{% endblock %}
+
+{% block content %}
+<section class="skills-section">
+    <h2>💼 My Skills</h2>
+
+    <!-- Add Skill Form -->
+    <div class="add-skill-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Skill Name" required>
+            <select name="proficiency">
+                <option value="BEGINNER">Beginner</option>
+                <option value="INTERMEDIATE" selected>Intermediate</option>
+                <option value="EXPERT">Expert</option>
+            </select>
+            <input type="file" name="image" accept="image/*">
+            <button type="submit" class="btn btn-add">➕ Add Skill</button>
+        </form>
+    </div>
+
+    <!-- Skills Listing -->
+    <div class="skills-grid">
+        {% for skill in skills %}
+        <div class="skill-card">
+            {% if skill.image %}
+            <div class="skill-image">
+                <img src="{{ skill.image.url }}" alt="{{ skill.name }}">
+            </div>
+            {% endif %}
+
+            <div class="skill-info">
+                <h3>{{ skill.name }}</h3>
+                <span class="skill-level {{ skill.proficiency|lower }}">{{ skill.proficiency }}</span>
+
+                <!-- Level Progress Bar -->
+                <div class="progress-bar-container">
+                    <div class="progress-bar {{ skill.proficiency|lower }}"></div>
+                </div>
+            </div>
+
+            <div class="skill-actions">
+                <a href="{% url 'freelancer:edit_skill' skill.id %}" class="btn btn-edit">✏️ Edit</a>
+                <form method="POST" action="{% url 'freelancer:delete_skill' skill.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-delete">🗑️ Delete</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p class="no-skills">No skills added yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .skills-section {
+        max-width: 1000px;
+        margin: 50px auto;
+        padding: 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    h2 {
+        text-align: center;
+        color: #1e40af;
+        font-size: 2rem;
+        margin-bottom: 30px;
+    }
+
+    /* Add Skill Form */
+    .add-skill-card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 18px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 40px;
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .add-skill-card input,
+    .add-skill-card select {
+        flex: 1 1 200px;
+        padding: 10px 15px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        font-size: 0.95rem;
+    }
+
+    .btn-add {
+        background: #1e40af;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-add:hover {
+        background: #1b3a9a;
+        transform: scale(1.05);
+    }
+
+    /* Skills Grid */
+    .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    /* Skill Card */
+    .skill-card {
+        background: #fff;
+        padding: 15px;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 180px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        text-align: center;
+    }
+
+    .skill-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Skill Image */
+    .skill-image img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin: 0 auto 10px;
+    }
+
+    /* Skill Info */
+    .skill-info h3 {
+        font-size: 1.25rem;
+        margin-bottom: 8px;
+        color: #111827;
+    }
+
+    .skill-level {
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #fff;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+
+    .skill-level.beginner {
+        background-color: #f59e0b;
+    }
+
+    .skill-level.intermediate {
+        background-color: #3b82f6;
+    }
+
+    .skill-level.expert {
+        background-color: #10b981;
+    }
+
+    /* Progress Bar */
+    .progress-bar-container {
+        background: #e5e7eb;
+        border-radius: 20px;
+        height: 10px;
+        width: 100%;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 20px;
+        transition: width 0.5s;
+    }
+
+    .progress-bar.beginner {
+        width: 33%;
+        background-color: #f59e0b;
+    }
+
+    .progress-bar.intermediate {
+        width: 66%;
+        background-color: #3b82f6;
+    }
+
+    .progress-bar.expert {
+        width: 100%;
+        background-color: #10b981;
+    }
+
+    /* Action Buttons */
+    .skill-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        justify-content: center;
+    }
+
+    .btn {
+        flex: 1;
+        padding: 8px 0;
+        border-radius: 12px;
+        border: none;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+    .btn-edit {
+        background-color: #2563eb;
+        color: #fff;
+    }
+
+    .btn-edit:hover {
+        background-color: #1d4ed8;
+        transform: scale(1.05);
+    }
+
+    .btn-delete {
+        background-color: #ef4444;
+        color: #fff;
+    }
+
+    .btn-delete:hover {
+        background-color: #dc2626;
+        transform: scale(1.05);
+    }
+
+    .no-skills {
+        grid-column: 1/-1;
+        text-align: center;
+        font-style: italic;
+        color: #6b7280;
+    }
+
+    @media(max-width:600px) {
+        .skills-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .add-skill-card {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

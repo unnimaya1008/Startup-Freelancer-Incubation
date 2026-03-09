@@ -1,0 +1,96 @@
+{% extends "base_freelancer.html" %}
+{% block title %}
+{% if create %}Create Milestone{% else %}Update Milestone{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="form-wrapper">
+
+    <div class="form-card">
+        <h2>
+            {% if create %}
+            ➕ Create Milestone
+            {% else %}
+            ✏️ Update Milestone
+            {% endif %}
+        </h2>
+
+        <p class="muted">
+            Project: <strong>{{ project.name }}</strong>
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    {% if create %}Create{% else %}Update{% endif %}
+                </button>
+
+                <a href="{% url 'freelancer:freelancer_milestones' project.id %}"
+                   class="btn-outline">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+</section>
+
+<style>
+.form-wrapper{
+    max-width: 650px;
+    margin: 30px auto;
+}
+
+.form-card{
+    background:#fff;
+    padding:24px;
+    border-radius:14px;
+    border:1px solid rgba(0,0,0,0.08);
+}
+
+.form-card h2{
+    margin-bottom:6px;
+    color:#1976d2;
+}
+
+.form-card p{
+    margin-bottom:20px;
+}
+
+.form-card input,
+.form-card textarea,
+.form-card select{
+    width:100%;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.form-actions{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+}
+
+.btn-primary{
+    background:#1976d2;
+    color:#fff;
+    border:none;
+    padding:8px 18px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn-outline{
+    border:1px solid #1976d2;
+    color:#1976d2;
+    padding:8px 16px;
+    border-radius:8px;
+    text-decoration:none;
+}
+</style>
+{% endblock %}

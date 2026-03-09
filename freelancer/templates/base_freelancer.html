@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Freelancer Panel{% endblock %}</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        /* ===== THEMED CSS VARIABLES (Light-blue → White Gradient) ===== */
+        :root {
+            --primary: #0f6fd6;
+            /* deep blue accent */
+            --primary-2: #2b8ef6;
+            /* lighter accent */
+            --primary-3: #60a5fa;
+            /* soft blue */
+            --bg-gradient-start: #ffffff;
+            --bg-gradient-end: #e8f4ff;
+            /* pale blue */
+            --text: #072033;
+            /* dark blue-ish text */
+            --muted: #5c6b7a;
+            --sidebar-bg: linear-gradient(180deg, rgba(15, 111, 214, 0.06), rgba(43, 142, 246, 0.03));
+            --sidebar-text: #083056;
+            --sidebar-hover: rgba(15, 111, 214, 0.10);
+            --sidebar-active: linear-gradient(90deg, var(--primary), var(--primary-2));
+            --card-bg: #ffffff;
+            --card-shadow: 0 8px 24px rgba(11, 30, 60, 0.04);
+            --border: rgba(7, 32, 50, 0.06);
+        }
+
+        /* ===== BASE LAYOUT ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(160deg, var(--bg-gradient-start) 10%, var(--bg-gradient-end) 100%);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 250px;
+            background: var(--card-bg);
+            color: var(--sidebar-text);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.28s ease;
+            border-right: 1px solid var(--border);
+            box-shadow: var(--card-shadow);
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 22px 12px;
+            border-bottom: 1px solid rgba(7, 32, 50, 0.03);
+            background: linear-gradient(180deg, rgba(47, 107, 247, 0.06), rgba(47, 107, 247, 0.02));
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            letter-spacing: 0.4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .sidebar nav {
+            flex-grow: 1;
+            padding: 14px 0;
+        }
+
+        .sidebar-section {
+            margin-bottom: 10px;
+        }
+
+        .sidebar-section h4 {
+            font-size: 0.8rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 8px 20px;
+            margin-bottom: 6px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--sidebar-text);
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            border-left: 3px solid transparent;
+            transition: all 0.18s ease;
+            border-radius: 8px;
+            margin: 4px 12px;
+        }
+
+        .sidebar a i {
+            width: 20px;
+            text-align: center;
+            color: var(--primary-3);
+            font-size: 1rem;
+        }
+
+        .sidebar a:hover {
+            background: var(--sidebar-hover);
+            color: var(--primary);
+            transform: translateX(4px);
+            box-shadow: 0 6px 18px rgba(15, 111, 214, 0.03);
+        }
+
+        .sidebar a.active {
+            background: var(--sidebar-active);
+            color: #fff;
+            border-left-color: rgba(255, 255, 255, 0.25);
+            transform: none;
+            box-shadow: 0 8px 24px rgba(15, 111, 214, 0.08);
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(7, 32, 50, 0.03);
+            font-size: 0.9rem;
+            color: var(--muted);
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.85));
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.98));
+            box-shadow: 0 4px 16px rgba(11, 30, 60, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 22px;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(6px);
+        }
+
+        .navbar .left h1 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.6rem;
+            color: var(--primary);
+            cursor: pointer;
+            margin-right: 12px;
+            background: transparent;
+            border: none;
+        }
+
+        .navbar .right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .navbar .right .user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(90deg, rgba(15, 111, 214, 0.03), rgba(43, 142, 246, 0.02));
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(15, 111, 214, 0.03);
+        }
+
+        .navbar .right img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 12px rgba(11, 30, 60, 0.06);
+        }
+
+        .navbar .right a {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* ===== CONTENT AREA ===== */
+        .content {
+            padding: 28px;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: transparent;
+            color: var(--muted);
+            text-align: center;
+            padding: 12px;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(7, 32, 50, 0.02);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 980px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 0;
+                height: 100%;
+                z-index: 200;
+                transition: left .28s ease;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .menu-toggle {
+                display: inline-block;
+            }
+
+            .navbar .left h1 {
+                font-size: 1.15rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .sidebar {
+                left: -260px;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .content {
+                padding: 16px;
+            }
+
+            body {
+                font-size: 15px;
+            }
+        }
+
+        /* ===== NOTIFICATION BADGE ===== */
+        .notification-badge {
+            background-color: #ff3b30;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+    </style>
+
+    {% block extra_css %}
+    {% endblock %}
+</head>
+
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-user-tie"></i> Freelancer</h2>
+        </div>
+
+        <nav>
+            <div class="sidebar-section">
+                <h4>Main</h4>
+                <a href="{% url 'freelancer:freelancer_dashboard' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+
+                <a href="{% url 'freelancer:freelancer_assigned_projects' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_assigned_projects' %}active{% endif %}">
+                    <i class="fa-solid fa-briefcase"></i> My Projects
+                </a>
+
+                <a href="{% url 'freelancer:freelancer_proposals' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_proposals' %}active{% endif %}">
+                    <i class="fa-solid fa-file-signature"></i> Proposals
+                </a>
+
+                <a href="{% url 'freelancer:available_projects' %}"
+                    class="{% if request.resolver_match.url_name == 'available_projects' %}active{% endif %}">
+                    <i class="fa-solid fa-file-signature"></i> Available Projects
+                </a>
+            </div>
+
+            <div class="sidebar-section">
+                <h4>Profile</h4>
+                <a href="{% url 'freelancer:freelancer_profile_detail' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_profile' %}active{% endif %}">
+                    <i class="fa-solid fa-user"></i> My Profile
+                </a>
+
+                <a href="{% url 'freelancer:freelancer_notifications' %}"
+                    class="{% if request.resolver_match.url_name == 'freelancer_notifications' %}active{% endif %}">
+                    <i class="fa-solid fa-bell"></i> Notifications
+                    {% for n in user.notifications.all %}
+                    {% if not n.read and forloop.first %}
+                    <span class="notification-badge" title="New Unread Notifications">!</span>
+                    {% endif %}
+                    {% endfor %}
+                </a>
+            </div>
+        </nav>
+
+
+        <div class="sidebar-footer">
+            <p><i class="fa-solid fa-circle-info"></i> Need Help?<br><small>support@startupincubation.com</small></p>
+        </div>
+    </div>
+
+    <!-- MAIN AREA -->
+    <div class="main">
+        <!-- NAVBAR -->
+        <div class="navbar">
+            <div class="left">
+                <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h1>Freelancer Dashboard</h1>
+            </div>
+            <div class="right">
+                <div class="user">
+                    {% if request.user.freelancer_profile.profile_picture %}
+                    <img src="{{ request.user.freelancer_profile.profile_picture.url }}" alt="Profile" loading="lazy">
+                    {% else %}
+                    <img src="/media/freelancers/ic_launcher.png" alt="Profile" loading="lazy">
+                    {% endif %}
+                    <span>{{ request.user.freelancer_profile.full_name }}</span>
+                </div>
+                <a href="{% url 'logout' %}" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+            </div>
+        </div>
+
+        <!-- PAGE CONTENT -->
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            &copy; {{ now|date:"Y" }} Freelancer Module | Startup & Freelancer Incubation System
+        </footer>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

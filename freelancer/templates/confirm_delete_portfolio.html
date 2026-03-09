@@ -1,0 +1,36 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Delete Portfolio Item{% endblock %}
+
+{% block content %}
+<section class="delete-confirm-section">
+    <div class="delete-card">
+        <h2>Confirm Deletion</h2>
+        <p>Are you sure you want to delete the portfolio item: <strong>{{ item.title }}</strong>?</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn-delete">Yes, Delete</button>
+            <a href="{% url 'freelancer:freelancer_portfolio' %}" class="btn-cancel">Cancel</a>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.delete-confirm-section { display:flex; justify-content:center; align-items:center; padding:50px 15px; }
+.delete-card { background:#fff; padding:30px 25px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.05); max-width:400px; text-align:center; }
+.delete-card h2 { font-size:1.6rem; margin-bottom:15px; color:#1e293b; }
+.delete-card p { color:#64748b; margin-bottom:25px; }
+
+.btn-delete {
+    background:#ef4444; color:#fff; padding:10px 20px; border-radius:8px; font-weight:600; border:none; cursor:pointer; margin-right:10px; transition:all 0.3s ease;
+}
+.btn-delete:hover { background:#dc2626; }
+
+.btn-cancel {
+    background:#e2e8f0; color:#334155; padding:10px 20px; border-radius:8px; font-weight:600; text-decoration:none; transition:all 0.3s ease;
+}
+.btn-cancel:hover { background:#cbd5e1; }
+</style>
+{% endblock %}

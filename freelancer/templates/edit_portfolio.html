@@ -1,0 +1,201 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Edit Portfolio Project{% endblock %}
+
+{% block content %}
+<section class="portfolio-form-section">
+    <div class="form-header">
+        <h1>Edit Project</h1>
+        <p>Update the details of your portfolio project below.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="portfolio-form">
+        {% csrf_token %}
+
+        <!-- Project Title -->
+        <div class="form-group">
+            <label for="{{ form.title.id_for_label }}">Project Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+            <div class="error">{{ form.title.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Project Description -->
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">Project Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <div class="error">{{ form.description.errors }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Preview Image -->
+        <div class="form-group">
+            <label for="{{ form.preview_image.id_for_label }}">Preview Image</label>
+            {{ form.preview_image }}
+            {% if form.preview_image.errors %}
+            <div class="error">{{ form.preview_image.errors }}</div>
+            {% endif %}
+            {% if form.instance.preview_image %}
+            <p>Current Image:</p>
+            <img src="{{ form.instance.preview_image.url }}" alt="Preview" class="preview-img">
+            {% endif %}
+        </div>
+
+        <!-- Project File -->
+        <div class="form-group">
+            <label for="{{ form.file.id_for_label }}">Project File</label>
+            {{ form.file }}
+            {% if form.file.errors %}
+            <div class="error">{{ form.file.errors }}</div>
+            {% endif %}
+            {% if form.instance.file %}
+            <p>Current File: <a href="{{ form.instance.file.url }}" target="_blank">{{ form.instance.file.name }}</a>
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Live Link -->
+        <div class="form-group">
+            <label for="{{ form.live_link.id_for_label }}">Live Project Link</label>
+            {{ form.live_link }}
+            {% if form.live_link.errors %}
+            <div class="error">{{ form.live_link.errors }}</div>
+            {% endif %}
+            {% if form.instance.live_link %}
+            <p>Current Live Link: <a href="{{ form.instance.live_link }}" target="_blank">{{ form.instance.live_link}}</a></p>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Update Project</button>
+            <a href="{% url 'freelancer:freelancer_portfolio' %}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Section */
+    .portfolio-form-section {
+        max-width: 650px;
+        margin: 0 auto;
+        padding: 30px 25px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Header */
+    .form-header h1 {
+        font-size: 2rem;
+        margin-bottom: 5px;
+        color: #1e293b;
+    }
+
+    .form-header p {
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 25px;
+    }
+
+    /* Form Groups */
+    .portfolio-form .form-group {
+        margin-bottom: 18px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .portfolio-form label {
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    /* Inputs */
+    .portfolio-form input[type="text"],
+    .portfolio-form input[type="url"],
+    .portfolio-form textarea,
+    .portfolio-form input[type="file"] {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        font-size: 0.95rem;
+        width: 100%;
+    }
+
+    .portfolio-form input:focus,
+    .portfolio-form textarea:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+    /* Error messages */
+    .error {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 4px;
+    }
+
+    /* Preview image */
+    .preview-img {
+        margin-top: 10px;
+        max-width: 250px;
+        max-height: 180px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Buttons */
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: #fff;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+        display: inline-block;
+        background: #e2e8f0;
+        color: #334155;
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #cbd5e1;
+    }
+
+    @media(max-width: 650px) {
+        .portfolio-form-section {
+            padding: 20px 15px;
+        }
+
+        .preview-img {
+            max-width: 180px;
+            max-height: 130px;
+        }
+    }
+</style>
+{% endblock %}

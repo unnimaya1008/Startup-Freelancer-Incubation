@@ -1,0 +1,218 @@
+{% extends "base_freelancer.html" %}
+
+{% block title %}Freelancer Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <!-- ===== HEADER SECTION ===== -->
+    <div class="header-card">
+        <div class="profile-area">
+            {% if profile.profile_picture %}
+            <img src="{{ profile.profile_picture.url }}" alt="Profile" class="profile-img">
+            {% else %}
+            <img src="/media/freelancers/ic_launcher.png" alt="Profile" class="profile-img">
+            {% endif %}
+            <div class="profile-info">
+                <h2 class="freelancer-name" title="{{ user.email }}">Welcome, {{ user.first_name }}</h2>
+                <p class="status-line">
+                    Status: <span class="badge {{ profile.availability|lower }}">{{ profile.availability }}</span>
+                </p>
+            </div>
+        </div>
+        <a href="{% url 'freelancer:freelancer_profile_edit' %}" class="btn-primary">Edit Profile</a>
+    </div>
+
+    <!-- ===== STATS GRID WITH SVG ICONS ===== -->
+    <div class="stats-section">
+        {% for stat in stats %}
+        <div class="stat-card">
+
+            <!-- SMALL BLUE SVG ICONS -->
+            <div class="stat-icon">
+                {% if stat.title == 'Total Proposals' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M4 3h14v2H4zm0 4h10v2H4zm0 4h14v2H4zm0 4h10v2H4z"/></svg>
+
+                {% elif stat.title == 'Pending Proposals' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M12 2a10 10 0 1 0 10 10A10.01 10.01 0 0 0 12 2Zm1 11h-2V7h2Zm0 4h-2v-2h2Z"/></svg>
+
+                {% elif stat.title == 'Assigned Projects' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M4 4h16v2H4zm0 4h12v2H4zm0 4h16v2H4z"/></svg>
+
+                {% elif stat.title == 'Completed Projects' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="m10 15-3.5-3.5 1.41-1.42L10 12.17l6.09-6.09 1.41 1.41z"/></svg>
+
+                {% elif stat.title == 'New Notifications' %}
+                <svg width="24" height="24" fill="#1976d2"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Zm6-6.5v-4A6.01 6.01 0 0 0 12 3a6.01 6.01 0 0 0-6 6.5v4L4 18v1h16v-1Z"/></svg>
+
+                {% else %}
+                <svg width="24" height="24" fill="#1976d2"><circle cx="12" cy="12" r="10"/></svg>
+                {% endif %}
+            </div>
+
+            <h3>{{ stat.value }}</h3>
+            <p>{{ stat.title }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ===== NOTIFICATIONS ===== -->
+    <div class="notifications-card">
+        <div class="section-header">
+            <h3>Recent Notifications</h3>
+            {% if notifications %}
+            <a href="{% url 'freelancer:freelancer_notifications' %}" class="view-all">View All</a>
+            {% endif %}
+        </div>
+
+        {% if notifications %}
+        <ul class="notifications-list">
+            {% for note in notifications %}
+            <li class="note-item {% if not note.read %}unread{% endif %}">
+                <div class="note-content">
+                    <p>{{ note.message }}</p>
+                    <span class="note-time">{{ note.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+                {% if not note.read %}
+                <form method="post" action="{% url 'freelancer:mark_notification_read' note.id %}" style="display:inline;">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <button type="submit" class="btn-mark-read">Mark as Read</button>
+</form>
+
+
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="no-data">No recent notifications.</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<style>
+    /* ===== Layout Wrapper ===== */
+    .dashboard-wrapper {
+        max-width: 1100px;
+        margin: 20px auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    /* ===== Header Section (Reduced Padding + Minimal Look) ===== */
+    .header-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        padding: 20px 25px; /* reduced from 35px 40px */
+        border-radius: 14px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.04); /* flatter shadow */
+    }
+
+    .profile-area {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .profile-img {
+        width: 70px;  
+        height: 70px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 2px solid #1976d2;
+    }
+
+    .freelancer-name {
+        margin: 0;
+        font-size: 1.4rem;
+        color: #1976d2;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.85rem;
+        text-transform: capitalize;
+    }
+
+    /* ===== Stats Section (NO SHADOW, FLAT) ===== */
+    .stats-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+        border: 1px solid rgba(0,0,0,0.08);  /* flat, subtle border */
+        transition: background 0.2s ease;
+    }
+
+    .stat-card:hover {
+        background: #f4f9ff;
+    }
+
+    .stat-icon {
+        margin-bottom: 8px;
+    }
+
+    .stat-card h3 {
+        margin: 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #1976d2;
+    }
+
+    .stat-card p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #444;
+    }
+
+    /* ===== Notifications ===== */
+    .notifications-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 18px 20px;
+        border: 1px solid rgba(0,0,0,0.08);  /* flat border */
+    }
+
+    .note-item {
+        border-left: 3px solid transparent;
+        background: #f8f9fb;
+        border-radius: 6px;
+        padding: 10px;
+    }
+
+    .note-item.unread {
+        background: #eaf3ff;
+        border-left-color: #1976d2;
+        font-weight: 500;
+    }
+
+    .btn-mark-read {
+        background: #1976d2;
+        padding: 4px 10px;
+        color: #fff;
+        font-size: 0.75rem;
+        border-radius: 4px;
+    }
+
+    /* Responsive */
+    @media(max-width:650px) {
+        .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .profile-img { width: 60px;height: 60px; }
+    }
+</style>
+{% endblock %}

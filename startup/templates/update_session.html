@@ -1,0 +1,137 @@
+{% extends 'base_startup.html' %}
+
+{% block content %}
+<div class="panel">
+    <h2>Update Mentorship Session</h2>
+
+    <!-- Show approval status -->
+    <p>
+        <strong>Approval Status:</strong>
+        {% if session.approval_status == 'PENDING' %}
+        <span class="status pending">Pending</span>
+        {% elif session.approval_status == 'APPROVED' %}
+        <span class="status approved">Approved</span>
+        {% else %}
+        <span class="status rejected">Rejected</span>
+        {% endif %}
+    </p>
+
+    {% if session.status == 'CANCELLED' %}
+    <p class="text-danger">This session is cancelled and cannot be updated.</p>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            {{ form.mentor.label_tag }}
+            {{ form.mentor }}
+        </div>
+
+        <div class="form-group">
+            {{ form.topic.label_tag }}
+            {{ form.topic }}
+        </div>
+
+        <div class="form-group">
+            {{ form.session_date.label_tag }}
+            {{ form.session_date }}
+        </div>
+
+        <div class="form-group">
+            {{ form.notes.label_tag }}
+            {{ form.notes }}
+        </div>
+
+        <div class="form-group">
+            {{ form.status.label_tag }}
+            {{ form.status }}
+        </div>
+
+        {% if session.status != 'CANCELLED' %}
+        <button type="submit" class="btn btn-success">Update</button>
+        {% endif %}
+    </form>
+</div>
+
+<style>
+    .panel {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #f7f7f7;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    input,
+    select,
+    textarea {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+    }
+
+    .btn-success {
+        background: #d32f2f;
+        /* Red for update button */
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-success:hover {
+        background: #b71c1c;
+    }
+
+    .status {
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-weight: bold;
+        color: #fff;
+    }
+
+    .status.pending {
+        background: #fbc02d;
+        /* Yellow */
+    }
+
+    .status.approved {
+        background: #388e3c;
+        /* Green */
+    }
+
+    .status.rejected {
+        background: #d32f2f;
+        /* Red */
+    }
+
+    .text-danger {
+        color: #d32f2f;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+</style>
+{% endblock %}

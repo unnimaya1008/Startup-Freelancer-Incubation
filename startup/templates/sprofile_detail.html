@@ -1,0 +1,143 @@
+{% extends "base_startup.html" %}
+{% load static %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    .profile-top {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        flex-wrap: wrap;
+    }
+
+    .profile-logo {
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        border: 3px solid #ff0000;
+        object-fit: cover;
+        background: #f5f5f5;
+    }
+
+    .profile-info h3 {
+        margin: 0;
+        font-size: 1.6rem;
+        color: #222;
+    }
+
+    .profile-info p {
+        margin: 6px 0;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .profile-section {
+        margin-top: 25px;
+    }
+
+    .profile-section h4 {
+        margin-bottom: 10px;
+        color: #ff0000;
+        font-size: 1.1rem;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 6px;
+    }
+
+    .profile-section p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #444;
+    }
+
+    .edit-btn {
+        background: #ff0000;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    .edit-btn:hover {
+        background: #e53935;
+    }
+
+    @media (max-width: 600px) {
+        .profile-top {
+            text-align: center;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="profile-container">
+
+    <div class="profile-header">
+        <h2>🏢 Startup Profile</h2>
+        <a href="{% url 'startup:sprofile_edit' %}" class="edit-btn">
+            ✏️ Edit Profile
+        </a>
+    </div>
+
+    <div class="profile-card">
+
+        <!-- Top Section -->
+        <div class="profile-top">
+            {% if profile.logo %}
+                <img src="{{ profile.logo.url }}" class="profile-logo">
+            {% else %}
+                <img src="{% static 'images/logo.png' %}" class="profile-logo">
+            {% endif %}
+
+            <div class="profile-info">
+                <h3>{{ profile.startup_name }}</h3>
+                <p><strong>Industry:</strong> {{ profile.industry|default:"—" }}</p>
+                <p><strong>Founded:</strong> {{ profile.founded_date|default:"—" }}</p>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="profile-section">
+            <h4>📄 Description</h4>
+            <p>{{ profile.description|default:"No description provided." }}</p>
+        </div>
+
+        <!-- Website -->
+        <div class="profile-section">
+            <h4>🌐 Website</h4>
+            {% if profile.website %}
+                <p>
+                    <a href="{{ profile.website }}" target="_blank">
+                        {{ profile.website }}
+                    </a>
+                </p>
+            {% else %}
+                <p>—</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

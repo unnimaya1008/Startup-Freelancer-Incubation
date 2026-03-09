@@ -1,0 +1,10 @@
+{% extends 'base_startup.html' %}
+{% block content %}
+<h2>Delete Funding Round</h2>
+<p>Are you sure you want to delete "{{ funding.round_name }}"?</p>
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit">Yes, Delete</button>
+    <a href="{% url 'startup:funding_list' %}">Cancel</a>
+</form>
+{% endblock %}

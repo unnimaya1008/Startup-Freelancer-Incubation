@@ -1,0 +1,60 @@
+{% extends 'base_startup.html' %}
+
+{% block content %}
+<div class="panel">
+    <h2>Cancel Session</h2>
+    <p>Are you sure you want to cancel the session with <strong>{{ session.mentor.user.username }}</strong> on "{{
+        session.topic }}"?</p>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+        <a href="{% url 'startup:startup_sessions' %}" class="btn btn-secondary">No, Go Back</a>
+    </form>
+</div>
+
+<style> 
+ .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    
+    .panel {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #f7f7f7;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-danger,
+    .btn-secondary {
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        margin-right: 10px;
+    }
+
+    .btn-danger {
+        background: #c62828;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background: #e53935;
+    }
+
+    .btn-secondary {
+        background: #999;
+        color: #fff;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background: #666;
+    }
+</style>
+{% endblock %}

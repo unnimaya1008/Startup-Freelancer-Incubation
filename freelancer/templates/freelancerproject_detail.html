@@ -1,0 +1,220 @@
+{# freelancerproject_detail.html - Updated full template #}
+{% extends 'base_freelancer.html' %}
+{% load static %}
+
+{% block title %}Project Details - {{ project.name }}{% endblock %}
+
+{% block content %}
+<section class="project-detail-section">
+    <div class="project-header">
+        <div>
+            <h2>{{ project.name }}</h2>
+            <p class="muted">by <strong>{{ project.startup.startup_name }}</strong></p>
+        </div>
+
+        <div class="header-actions">
+            <span class="status-badge {{ project.status|lower }}">{{ project.get_status_display }}</span>
+            {% if project.assignment and project.assignment.freelancer %}
+                {% if project.assignment.freelancer == request.user.freelancer_profile %}
+                    <span class="assigned-badge">Assigned to you</span>
+                {% else %}
+                    <span class="assigned-badge other">Assigned to {{ project.assignment.freelancer.full_name|default:project.assignment.freelancer.user.username }}</span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="project-info-card">
+        <!-- Basic Info -->
+        <div class="info-row">
+            <strong>Description</strong>
+            <p>{{ project.description }}</p>
+        </div>
+
+        {% if project.requirements_file %}
+        <div class="info-row">
+            <strong>Requirements</strong>
+            <a href="{{ project.requirements_file.url }}" target="_blank" class="file-link">📎 Download requirements</a>
+        </div>
+        {% endif %}
+
+        <div class="info-row meta-row">
+            <div><strong>Start:</strong> {{ project.start_date|date:"d M Y" }}</div>
+            {% if project.end_date %}<div><strong>End (est):</strong> {{ project.end_date|date:"d M Y" }}</div>{% endif %}
+            <div><strong>Visibility:</strong> {{ project.get_visibility_display|default:"—" }}</div>
+        </div>
+
+        <!-- --------------------------
+             Proposal section (if exists)
+             -------------------------- -->
+        {% if proposal %}
+        <div class="info-row proposal-block">
+            <div class="proposal-header">
+                <h3>🔖 Your Proposal</h3>
+                <span class="proposal-status {{ proposal.status|lower }}">{{ proposal.get_status_display }}</span>
+            </div>
+
+            <div class="proposal-body">
+                <p><strong>Submitted:</strong> {{ proposal.submitted_at|date:"M d, Y H:i" }}</p>
+                <p><strong>Timeline:</strong> {{ proposal.expected_timeline }} days</p>
+                <p><strong>Payment:</strong> ₹{{ proposal.expected_payment }}</p>
+
+                {% if proposal.proposal_text %}
+                <div class="proposal-text">
+                    <strong>Proposal:</strong>
+                    <p>{{ proposal.proposal_text|linebreaksbr }}</p>
+                </div>
+                {% endif %}
+
+                {% if proposal.attachments %}
+                <div class="proposal-files">
+                    <strong>Attachments:</strong>
+                    {% if proposal.attachments.url %}
+                    <a href="{{ proposal.attachments.url }}" target="_blank">Download</a>
+                    {% else %}
+                    <span>—</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if proposal.status == 'REJECTED' and proposal.rejection_note %}
+                <div class="rejection-note">
+                    <strong>Rejection note:</strong>
+                    <p>{{ proposal.rejection_note }}</p>
+                </div>
+
+                <!-- Allow resubmit when rejected and project still open -->
+                {% if not project.assigned_freelancer and project.status != 'COMPLETED' %}
+                <div class="resubmit-link">
+                    <a href="{% url 'freelancer:freelancer_submit_proposal' project.id %}" class="btn-resubmit">🔄 Resubmit Proposal</a>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- --------------------------
+             CTA: Submit Proposal (when allowed)
+             -------------------------- -->
+        {% if not proposal and project.status != 'COMPLETED' and not project.assigned_freelancer %}
+        <div class="info-row">
+            <a href="{% url 'freelancer:freelancer_submit_proposal' project.id %}" class="btn-submit" title="Submit a proposal">
+                📤 Submit Proposal
+            </a>
+            <p class="helper-text">Write your proposal, set timeline & expected payment, and attach files.</p>
+        </div>
+        {% elif not proposal and project.assigned_freelancer %}
+        <div class="info-row">
+            <p class="assigned-note">This project has been assigned to another freelancer.</p>
+        </div>
+        {% endif %}
+
+        <!-- --------------------------
+             Assigned-to-you actions (when freelancer is the assignee)
+             -------------------------- -->
+        {% if project.assignment and project.assignment.freelancer == request.user.freelancer_profile %}
+        <div class="assigned-actions">
+            <h4>Work actions</h4>
+
+            <div class="actions-row">
+                <a href="{% url 'freelancer:freelancer_milestones' project.id %}" class="btn-action">📌 Milestones</a>
+
+               
+                <!-- Mark complete form -->
+                <form method="post" action="{% url 'freelancer:complete_project' project.id %}" onsubmit="return confirmComplete();" class="inline-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-complete">✅ Mark as Completed</button>
+                </form>
+            </div>
+
+            <div class="assigned-info">
+                <p><strong>Your role:</strong> {{ project.assignment.role|default:"Freelancer" }}</p>
+                <p class="muted">Use milestones to upload deliverables and communicate progress.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- --------------------------
+             Completed message
+             -------------------------- -->
+        {% if project.status == 'COMPLETED' %}
+        <div class="info-row">
+            <div class="completed-msg">🎉 This project is completed.</div>
+            {% if project.assignment and project.assignment.freelancer == request.user.freelancer_profile %}
+            <p class="muted">Thank you — you completed this project.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Footer quick links -->
+    <div class="project-actions">
+        <a href="{% url 'freelancer:freelancer_assigned_projects' %}" class="btn-secondary">← Back to Projects</a>
+        <a href="{% url 'freelancer:freelancer_proposals' %}" class="btn-secondary">My Proposals →</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Layout */
+.project-detail-section { max-width: 1000px; margin: 30px auto; padding: 10px; }
+.project-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.project-header h2 { margin:0; color:#1976d2; font-size:1.8rem; }
+.project-header .muted { color:#6b7280; margin:4px 0 0 0; }
+
+/* Badges */
+.status-badge { padding:6px 12px; border-radius:18px; font-weight:700; color:#fff; text-transform:uppercase; margin-left:8px; }
+.status-badge.planned { background:#f39c12; } .status-badge.ongoing { background:#3498db; } .status-badge.completed { background:#27ae60; }
+.assigned-badge { display:inline-block; margin-left:10px; background:#111827; color:#fff; padding:6px 10px; border-radius:10px; font-weight:600; }
+.assigned-badge.other { background:#6b7280; }
+
+/* Card */
+.project-info-card { background:#fff; padding:22px; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.06); display:flex; flex-direction:column; gap:14px; margin-top:14px; }
+
+/* Info rows */
+.info-row { display:flex; flex-direction:column; gap:8px; }
+.meta-row { display:flex; gap:18px; font-size:0.95rem; color:#475569; flex-wrap:wrap; }
+
+/* Proposal block */
+.proposal-block { background:#f8faf8; border-left:4px solid #27ae60; padding:12px; border-radius:8px; }
+.proposal-header { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.proposal-status { padding:6px 10px; border-radius:10px; font-weight:700; color:#fff; }
+.proposal-status.pending { background:#f39c12; } .proposal-status.approved { background:#27ae60; } .proposal-status.rejected { background:#c62828; }
+
+.proposal-body p { margin:6px 0; color:#374151; }
+.proposal-text { background:#fff; padding:10px; border-radius:8px; border:1px solid #eef2ff; margin-top:8px; }
+
+/* Buttons */
+.btn-submit { display:inline-block; background:#1976d2; color:#fff; padding:10px 16px; border-radius:10px; text-decoration:none; font-weight:700; }
+.btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(25,118,210,0.16); }
+.btn-resubmit { display:inline-block; background:#f59e0b; color:#fff; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:600; margin-top:8px; }
+
+.btn-action { display:inline-block; background:#eef2ff; color:#1f2937; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:700; margin-right:8px; }
+.btn-complete { background:#27ae60; color:#fff; padding:10px 14px; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
+
+.helper-text { color:#6b7280; margin-top:6px; }
+.assigned-note { color:#6b7280; font-weight:600; }
+.completed-msg { background:#e6f4ea; color:#1f8a4c; padding:10px 12px; border-left:4px solid #27ae60; border-radius:8px; font-weight:700; }
+
+/* Actions */
+.project-actions { display:flex; gap:10px; margin-top:16px; }
+.btn-secondary { background:#f1f5f9; color:#0f172a; padding:8px 12px; border-radius:8px; text-decoration:none; font-weight:700; }
+
+/* Responsive */
+@media(max-width:720px) {
+  .project-header { flex-direction:column; align-items:flex-start; gap:8px; }
+  .meta-row { flex-direction:column; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmComplete(){
+    return confirm("Are you sure you want to mark this project as completed? This action may notify the startup.");
+}
+</script>
+{% endblock %}

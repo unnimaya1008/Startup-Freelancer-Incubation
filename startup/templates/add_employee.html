@@ -1,0 +1,243 @@
+{% extends 'base_startup.html' %}
+
+{% block title %}Add Employee - {{ profile.startup_name }}{% endblock %}
+{% block active_employees %}active{% endblock %}
+
+{% block content %}
+<div class="header-wrapper">
+    <div class="page-header">
+        <a href="{% url 'startup:startup_employees' %}" class="back-btn">← Back to Employees</a>
+        <h2>👤 Add New Employee</h2>
+        <p>Fill in the details to add a new employee to your startup.</p>
+    </div>
+</div>
+
+<form method="POST" class="employee-form" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-columns">
+
+        <!-- Left Panel -->
+        <div class="form-left panel">
+            <h3>Personal Info</h3>
+            <div class="form-group">
+                <label for="id_name">Full Name</label>
+                {{ form.name }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_role">Role</label>
+                {{ form.role }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_email">Email</label>
+                {{ form.email }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_phone_number">Phone Number</label>
+                {{ form.phone_number }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_date_of_joining">Date of Joining</label>
+                {{ form.date_of_joining }}
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label for="id_is_active">Currently Active</label>
+                {{ form.is_active }}
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="form-right panel">
+            <h3>Profile & Skills</h3>
+
+            <div class="form-group">
+                <label for="id_profile_picture">Profile Picture</label>
+                {{ form.profile_picture }}
+                <div id="profile-preview" class="file-preview">
+                    <!-- Preview will appear here -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_linkedin_profile">LinkedIn Profile</label>
+                {{ form.linkedin_profile }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_github_profile">GitHub Profile</label>
+                {{ form.github_profile }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_skills">Skills</label>
+                {{ form.skills }}
+            </div>
+        </div>
+
+    </div>
+
+    <button type="submit" class="btn submit-btn">Add Employee</button>
+</form>
+
+<!-- Preview Script -->
+<script>
+    const fileInput = document.getElementById('id_profile_picture');
+    const previewDiv = document.getElementById('profile-preview');
+
+    fileInput.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            previewDiv.innerHTML = `<img src="${e.target.result}" style="max-width:120px; border-radius:8px;">`;
+        }
+        reader.readAsDataURL(file);
+    });
+</script>
+
+<style>
+      .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    .header-wrapper {
+        margin: 20px 30px 0 100px;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        margin-top: 4px;
+        color: #555;
+    }
+
+    .back-btn {
+        color: #c62828;
+        text-decoration: none;
+        margin-bottom: 12px;
+        display: inline-block;
+    }
+
+    .back-btn:hover {
+        color: #e53935;
+    }
+
+    .employee-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        margin: 0 auto;
+        max-width: 1100px;
+    }
+
+    .form-columns {
+        display: flex;
+        gap: 40px;
+        width: 100%;
+    }
+
+    .panel {
+        flex: 1;
+        background: #f9f9f9;
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .panel h3 {
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+        color: #333;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        font-size: 0.95rem;
+        width: 100%;
+        background: #fff;
+    }
+
+    textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .checkbox-group {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .file-preview img {
+        max-width: 120px;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    .btn.submit-btn {
+        background: #c62828;
+        color: #fff;
+        border: none;
+        padding: 14px 0;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        width: 240px;
+        transition: 0.2s;
+    }
+
+    .btn.submit-btn:hover {
+        background: #e53935;
+        transform: translateY(-2px);
+    }
+
+    @media(max-width:1000px) {
+        .form-columns {
+            flex-direction: column;
+        }
+    }
+
+    @media(max-width:600px) {
+        .employee-form {
+            width: 100%;
+            margin: 0 10px;
+        }
+
+        .btn.submit-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

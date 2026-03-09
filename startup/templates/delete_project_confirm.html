@@ -1,0 +1,117 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Delete Project - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+    <!-- Delete Card -->
+    <div class="project-card">
+        <!-- Header -->
+        <div class="card-header">
+            <h1>Delete Project</h1>
+        </div>
+
+        <!-- Message -->
+        <div class="section">
+            <p>Are you sure you want to delete the project <strong>{{ project.name }}</strong>? This action cannot be
+                undone.</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="section flex-row">
+            <a href="{% url 'startup:project_detail' project.id %}" class="btn cancel-btn">Cancel</a>
+            <form method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn delete-btn">Confirm Delete</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<style>
+      .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    .page-container {
+        padding: 50px 20px;
+        min-height: 100vh;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    /* Card */
+    .project-card {
+        background: #fff;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        max-width: 600px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .card-header h1 {
+        font-size: 2rem;
+        color: #222;
+        margin: 0;
+    }
+
+    /* Section */
+    .section {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .section.flex-row {
+        flex-direction: row;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        color: #fff;
+        transition: 0.2s;
+        text-align: center;
+    }
+
+    .cancel-btn {
+        background-color: #6c757d;
+    }
+
+    .cancel-btn:hover {
+        background-color: #5a6268;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+        border: none;
+        cursor: pointer;
+    }
+
+    .delete-btn:hover {
+        background-color: #b02a37;
+    }
+
+    /* Responsive */
+    @media(max-width: 700px) {
+        .section.flex-row {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

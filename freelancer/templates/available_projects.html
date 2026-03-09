@@ -1,0 +1,182 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Available Projects{% endblock %}
+{% block header_title %}Available Projects{% endblock %}
+{% block header_sub %}Browse projects posted by startups — submit a proposal to apply.{% endblock %}
+
+{% block content %}
+<section class="available-projects" aria-label="Available projects">
+  {% if projects %}
+  <div class="projects-grid">
+    {% for project in projects %}
+    <article class="project-card" aria-labelledby="proj-{{ project.id }}">
+      <div class="card-head">
+        <div id="proj-{{ project.id }}" class="project-name">{{ project.name }}</div>
+        <div class="status {{ project.status|lower }}">{{ project.get_status_display }}</div>
+      </div>
+
+      <div class="project-meta">
+        <span class="startup">{{ project.startup.startup_name }}</span>
+        {% if project.start_date %} • <span class="date">Start {{ project.start_date|date:"d M Y" }}</span>{% endif %}
+        {% if project.end_date %} • <span class="date">End {{ project.end_date|date:"d M Y" }}</span>{% endif %}
+      </div>
+
+      <p class="project-desc">{{ project.description|truncatechars:160 }}</p>
+
+      <div class="card-actions">
+        <a href="{% url 'freelancer:freelancer_project_detail' project.id %}" class="btn btn-view">View details</a>
+
+        {% if project.status != 'COMPLETED' and not project.assigned_freelancer %}
+          <a href="{% url 'freelancer:freelancer_submit_proposal' project.id %}" class="btn btn-primary">Submit proposal</a>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-message">No available projects right now.</div>
+    <a href="{% url 'freelancer:freelancer_dashboard' %}" class="btn btn-ghost">Return to dashboard</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+  --primary: #1976d2;
+  --primary-2: #2b8ef6;
+  --muted: #6b7280;
+  --border: rgba(7,32,50,0.06);
+  --card-bg: #ffffff;
+  --soft-tint: #f9fbff;
+  --radius: 10px;
+}
+
+/* Layout */
+.available-projects { max-width:980px; margin:14px auto; padding:8px 12px 36px; }
+
+/* Grid */
+.projects-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap:16px;
+}
+
+/* Card */
+.project-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  transition: background .12s ease, transform .12s ease;
+  min-height:160px;
+}
+.project-card:hover {
+  background: var(--soft-tint);
+  transform: translateY(-3px);
+}
+
+/* Head */
+.card-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+.project-name {
+  font-weight:700;
+  color:var(--primary);
+  font-size:1rem;
+  line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* Status pill (outline) */
+.status {
+  font-size:0.75rem;
+  font-weight:700;
+  padding:6px 10px;
+  border-radius:999px;
+  text-transform:uppercase;
+  letter-spacing:0.4px;
+  background:#fff;
+  border:1px solid rgba(25,118,210,0.10);
+  color:var(--primary);
+}
+
+/* Meta & description */
+.project-meta { font-size:0.82rem; color:var(--muted); }
+.project-desc {
+  color:#333;
+  font-size:0.92rem;
+  line-height:1.28;
+  margin:0;
+  overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical;
+}
+
+/* Actions */
+.card-actions {
+  margin-top:auto; /* push actions to bottom */
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  align-items:center;
+}
+
+/* Button styles (minimal) */
+.btn {
+  font-size:0.88rem;
+  padding:8px 10px;
+  border-radius:8px;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  border:1px solid transparent;
+}
+
+.btn-view {
+  color:var(--primary);
+  background:transparent;
+  border:1px solid rgba(25,118,210,0.08);
+}
+
+.btn-primary {
+  background: linear-gradient(90deg,var(--primary),var(--primary-2));
+  color:#fff;
+  border:1px solid rgba(15,111,214,0.08);
+}
+
+.btn-ghost {
+  border:1px dashed var(--border);
+  background:transparent;
+  color:var(--muted);
+}
+
+/* Empty state */
+.empty {
+  display:flex;
+  gap:12px;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:20px;
+  border-radius:10px;
+  border:1px dashed var(--border);
+  color:var(--muted);
+}
+
+/* Responsive */
+@media (max-width:720px){
+  .projects-grid { grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); }
+  .card-actions { justify-content:flex-start; gap:6px; }
+  .project-card { min-height:unset; padding:12px; }
+}
+</style>
+{% endblock %}

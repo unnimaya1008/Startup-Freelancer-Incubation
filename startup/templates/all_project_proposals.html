@@ -1,0 +1,127 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}All Project Proposals{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h1>All Proposals for Your Projects</h1>
+    <table class="proposal-table">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Freelancer</th>
+                <th>Timeline</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Submitted At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proposal in proposals %}
+            <tr id="proposal-{{ proposal.id }}">
+                <td>{{ proposal.project.name }}</td>
+                <td>{{ proposal.freelancer.user.username }}</td>
+                <td>{{ proposal.expected_timeline|default:"—" }}</td>
+                <td>${{ proposal.expected_payment|default:"—" }}</td>
+                <td class="status">{{ proposal.get_status_display }}</td>
+                <td>{{ proposal.submitted_at|date:"Y-m-d H:i" }}</td>
+                <td class="actions">
+                    {% if proposal.status == "PENDING" %}
+                    <button class="btn approve-btn" data-id="{{ proposal.id }}">✅ Approve</button>
+                    <button class="btn reject-btn" data-id="{{ proposal.id }}">❌ Reject</button>
+                    {% else %}
+                    <span style="color: gray;">No actions</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">No proposals submitted yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+      .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    .proposal-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .proposal-table th,
+    .proposal-table td {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        text-align: left;
+    }
+
+    .proposal-table th {
+        background-color: #f4f4f4;
+    }
+
+    .btn {
+        padding: 5px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: white;
+        font-weight: 500;
+        margin-right: 5px;
+        cursor: pointer;
+    }
+
+    .approve-btn {
+        background-color: #28a745;
+    }
+
+    .approve-btn:hover {
+        background-color: #218838;
+    }
+
+    .reject-btn {
+        background-color: #dc3545;
+    }
+
+    .reject-btn:hover {
+        background-color: #b02a37;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function sendProposalAction(proposalId, action) {
+            fetch(`/proposals/${proposalId}/${action}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const row = document.getElementById(`proposal-${data.proposal_id}`);
+                    row.querySelector('.status').innerText = data.status;
+                    row.querySelector('.actions').innerHTML = '<span style="color: gray;">No actions</span>';
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        document.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', () => sendProposalAction(btn.dataset.id, 'approve'));
+        });
+
+        document.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', () => sendProposalAction(btn.dataset.id, 'reject'));
+        });
+    });
+</script>
+{% endblock %}

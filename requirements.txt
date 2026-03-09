@@ -1,0 +1,10 @@
+Django==5.2.6
+django-widget-tweaks==1.5.0
+pillow==11.3.0
+python-dotenv==1.1.1
+PyJWT==2.10.1
+supabase==2.20.0
+supabase-auth==2.20.0
+supabase-functions==2.20.0
+storage3==2.20.0
+realtime==2.20.0

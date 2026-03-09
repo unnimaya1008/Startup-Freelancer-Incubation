@@ -1,0 +1,293 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Startup Panel{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --red: #ff0000;
+            --light-red: #e53935;
+            --white: #fff;
+            --light-gray: #ffffff;
+            --dark-gray: #444;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-gray);
+            display: flex;
+            min-height: 100vh;
+            color: var(--dark-gray);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--red);
+            padding: 30px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            color: var(--white);
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin: 15px 0;
+        }
+
+        .sidebar ul li a {
+            color: var(--white);
+            text-decoration: none;
+            display: block;
+            padding: 10px 15px;
+            border-radius: 6px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
+            background-color: var(--white);
+            color: var(--red);
+        }
+
+        .logout a {
+            background: var(--white);
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--red);
+            font-weight: 600;
+            display: block;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .logout a:hover {
+            background: var(--light-red);
+            color: var(--white);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+            width: 100%;
+        }
+
+        /* Header Greeting Bar */
+        header {
+            background-color: var(--red);
+            color: var(--white);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-left img {
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .header-left h1 {
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .header-right {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .header-right .badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: var(--white);
+            color: var(--red);
+            font-size: 0.75rem;
+            padding: 3px 6px;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 35px;
+            background: white;
+            color: black;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-dropdown p {
+            padding: 10px;
+            margin: 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .notification-dropdown p:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 850px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar h2 {
+                display: none;
+            }
+
+            .sidebar ul li a {
+                text-align: center;
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            header h1 {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <!-- Sidebar -->
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div>
+            <h2>Startup Panel</h2>
+            <ul>
+                <li>
+                    <a href="{% url 'startup:startup_dashboard' %}"
+                    class="{% if request.path == '/startup/dashboard/' or request.path == '/startup/dashboard/' %}active{% endif %}">🏠 Dashboard</a>
+                </li>
+                <li>
+                <a href="{% url 'startup:stprofile_detail' %}"
+                class="{% if '/startup/profile/' in request.path %}active{% endif %}">
+                🏢 My Profile
+                </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'startup:startup_projects' %}"
+                        class="{% if '/startup/projects/' in request.path %}active{% endif %}">📂 Projects</a>
+                </li>
+                <li>
+                    <a href="{% url 'startup:startup_employees' %}"
+                        class="{% if '/startup/employees/' in request.path %}active{% endif %}">👥 Employees</a>
+                </li>
+                <li>
+                    <a href="{% url 'startup:project_proposals' %}"
+                        class="{% if '/startup/proposals/' in request.path %}active{% endif %}">📝 Proposals</a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'startup:startup_sessions' %}"
+                        class="{% if '/startup/sessions/' in request.path %}active{% endif %}">🎓 Mentorship</a>
+                </li>
+            </ul>
+        </div>
+        <div class="logout">
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </nav>
+
+
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header>
+            <div class="header-left">
+                {% if profile.logo %}
+                    <img src="{{ profile.logo.url }}" alt="Logo">
+                {% else %}
+                    <img src="{% static 'images/logo.png' %}" alt="Logo">
+                {% endif %}
+
+                <h1>Welcome, {{ profile.startup_name }}</h1>
+            </div>
+            <div class="header-right notification">
+                🔔
+                {% if notifications_count > 0 %}
+                <span class="badge">{{ notifications_count }}</span>
+                {% endif %}
+                <div class="notification-dropdown">
+                    {% for note in notifications %}
+                    <p>{{ note.message }}</p>
+                    {% empty %}
+                    <p>No notifications</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        // Notification toggle
+        const notif = document.querySelector('.header-right.notification');
+        const dropdown = notif.querySelector('.notification-dropdown');
+        notif.addEventListener('click', () => {
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
+
+
+
+
+
+
+
+

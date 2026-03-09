@@ -1,0 +1,219 @@
+{% extends 'base_freelancer.html' %}
+{% load static %}
+
+{% block title %}
+Submit Proposal – {{ project.name }}
+{% endblock %}
+
+{% block content %}
+<section class="proposal-page">
+
+    <!-- Header -->
+    <div class="page-header">
+        <h2>📤 Submit Proposal</h2>
+        <p class="muted">
+            Project: <strong>{{ project.name }}</strong>
+        </p>
+    </div>
+
+    <!-- Rejection note (SAFE handling) -->
+    {% if previous_proposal and previous_proposal.status == 'REJECTED' %}
+        <div class="alert alert-danger">
+            <strong>⚠ Proposal Rejected</strong>
+            {% if previous_proposal.rejection_note %}
+                <p>{{ previous_proposal.rejection_note }}</p>
+            {% else %}
+                <p>Your previous proposal was rejected. You may revise and resubmit.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Proposal Card -->
+    <div class="proposal-card">
+
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <!-- Proposal Text -->
+            <div class="form-group">
+                <label for="{{ form.proposal_text.id_for_label }}">
+                    Proposal Description
+                </label>
+                {{ form.proposal_text }}
+                {% if form.proposal_text.errors %}
+                    <div class="error">{{ form.proposal_text.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Expected Payment -->
+            <div class="form-group">
+                <label for="{{ form.expected_payment.id_for_label }}">
+                    Expected Payment (₹)
+                </label>
+                {{ form.expected_payment }}
+                {% if form.expected_payment.errors %}
+                    <div class="error">{{ form.expected_payment.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Expected Timeline -->
+            <div class="form-group">
+                <label for="{{ form.expected_timeline.id_for_label }}">
+                    Expected Timeline (days)
+                </label>
+                {{ form.expected_timeline }}
+                {% if form.expected_timeline.errors %}
+                    <div class="error">{{ form.expected_timeline.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Attachments -->
+            <div class="form-group">
+                <label for="{{ form.attachments.id_for_label }}">
+                    Attachments (optional)
+                </label>
+                {{ form.attachments }}
+                <small class="muted">
+                    Upload supporting documents if required
+                </small>
+                {% if form.attachments.errors %}
+                    <div class="error">{{ form.attachments.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    {% if previous_proposal %}
+                        🔄 Resubmit Proposal
+                    {% else %}
+                        📤 Submit Proposal
+                    {% endif %}
+                </button>
+
+                <a href="{% url 'freelancer:freelancer_project_detail' project.id %}"
+                   class="btn-outline">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Page layout */
+.proposal-page{
+    max-width: 820px;
+    margin: 30px auto;
+    padding: 10px;
+}
+
+/* Header */
+.page-header{
+    margin-bottom: 18px;
+}
+.page-header h2{
+    color:#1976d2;
+    margin-bottom: 4px;
+}
+.muted{
+    color:#6b7280;
+}
+
+/* Alert */
+.alert{
+    padding:14px 16px;
+    border-radius:10px;
+    margin-bottom:18px;
+    font-size:0.95rem;
+}
+.alert-danger{
+    background:#fdecea;
+    border-left:4px solid #c62828;
+    color:#7f1d1d;
+}
+
+/* Card */
+.proposal-card{
+    background:#fff;
+    border-radius:14px;
+    padding:24px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.06);
+    border:1px solid rgba(0,0,0,0.08);
+}
+
+/* Form */
+.form-group{
+    margin-bottom:16px;
+}
+.form-group label{
+    font-weight:600;
+    margin-bottom:6px;
+    display:block;
+    color:#1f2937;
+}
+.form-group input,
+.form-group textarea{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #cbd5e1;
+    font-size:0.95rem;
+}
+.form-group textarea{
+    resize:vertical;
+}
+.form-group input:focus,
+.form-group textarea:focus{
+    outline:none;
+    border-color:#1976d2;
+    box-shadow:0 0 0 2px rgba(25,118,210,0.15);
+}
+
+/* Errors */
+.error{
+    margin-top:4px;
+    font-size:0.85rem;
+    color:#c62828;
+}
+
+/* Actions */
+.form-actions{
+    display:flex;
+    gap:12px;
+    margin-top:22px;
+}
+.btn-primary{
+    background:#1976d2;
+    color:#fff;
+    padding:10px 18px;
+    border-radius:10px;
+    border:none;
+    font-weight:700;
+    cursor:pointer;
+}
+.btn-primary:hover{
+    background:#1565c0;
+}
+.btn-outline{
+    border:1px solid #1976d2;
+    color:#1976d2;
+    padding:10px 16px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+/* Responsive */
+@media(max-width:640px){
+    .form-actions{
+        flex-direction:column;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}My Proposals{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h2 class="page-title">My Proposals</h2>
+
+    {% if proposals %}
+    <div class="proposals-grid">
+        {% for p in proposals %}
+        <div
+            class="proposal-card {% if p.status == 'PENDING' %}pending{% elif p.status == 'APPROVED' %}approved{% else %}rejected{% endif %}">
+            <div class="proposal-header">
+                <h3>{{ p.project.name }}</h3>
+                <span class="status-badge">{{ p.get_status_display }}</span>
+            </div>
+
+            {% if p.status == 'REJECTED' and p.rejection_note %}
+            <p class="rejection-note"><strong>Rejection Note:</strong> {{ p.rejection_note }}</p>
+            {% endif %}
+
+            <p><strong>Submitted:</strong> {{ p.submitted_at|date:"M d, Y H:i" }}</p>
+
+            {% if p.status == 'REJECTED' and not p.project.assigned_freelancer %}
+            <a href="{% url 'freelancer:freelancer_submit_proposal' p.project.id %}" class="btn resubmit-btn">🔄 Resubmit</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-proposals">No proposals found.</p>
+    {% endif %}
+</div>
+
+<style>
+    .page-container {
+        padding: 30px;
+        background-color: #f5f6fa;
+        min-height: 100vh;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+
+    .proposals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .proposal-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        transition: 0.2s;
+    }
+
+    .proposal-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .proposal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .proposal-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #34495e;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.85rem;
+    }
+
+    .proposal-card.pending .status-badge {
+        background: #f39c12;
+    }
+
+    .proposal-card.approved .status-badge {
+        background: #28a745;
+    }
+
+    .proposal-card.rejected .status-badge {
+        background: #c62828;
+    }
+
+    .rejection-note {
+        color: #c62828;
+        font-style: italic;
+        margin-bottom: 10px;
+    }
+
+    .btn.resubmit-btn {
+        display: inline-block;
+        background: #3498db;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+
+    .btn.resubmit-btn:hover {
+        opacity: 0.9;
+    }
+
+    .no-proposals {
+        text-align: center;
+        font-size: 1.1rem;
+        color: #888;
+        margin-top: 40px;
+    }
+</style>
+{% endblock %}

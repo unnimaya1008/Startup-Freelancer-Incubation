@@ -1,0 +1,138 @@
+
+{% extends 'base_startup.html' %}
+{% load static %}
+{% block title %}Confirm Delete - {{ employee.name }}{% endblock %}
+{% block active_employees %}active{% endblock %}
+
+{% block content %}
+<div class="header-wrapper">
+    <div class="page-header">
+        <h2>⚠️ Confirm Delete</h2>
+        <p>Are you sure you want to delete <strong>{{ employee.name }}</strong> from your employees?</p>
+        <a href="{% url 'startup:startup_employees' %}" class="btn cancel-btn">← Cancel</a>
+    </div>
+</div>
+
+<!-- Employee Preview Card -->
+<div class="employee-card-preview">
+    <div class="profile-pic">
+        {% if employee.profile_picture %}
+        <img src="{{ employee.profile_picture }}" alt="{{ employee.name }}">
+        {% else %}
+        <img src="{% static 'images/default-profile.png' %}" alt="No Image">
+        {% endif %}
+    </div>
+    <div class="employee-info">
+        <h3>{{ employee.name }}</h3>
+        <p class="role">{{ employee.role|default:"No role" }}</p>
+        <p>Email: {{ employee.email|default:"-" }}</p>
+        <p>Phone: {{ employee.phone_number|default:"-" }}</p>
+    </div>
+</div>
+
+<form method="POST" class="delete-form">
+    {% csrf_token %}
+    <button type="submit" class="btn delete-btn">Delete Employee</button>
+</form>
+
+<style>
+      .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    .header-wrapper {
+        margin: 50px 30px;
+        text-align: center;
+    }
+
+    .page-header h2 {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+        color: #c62828;
+    }
+
+    .page-header p {
+        font-size: 1rem;
+        margin-bottom: 20px;
+        color: #555;
+    }
+
+    .btn.cancel-btn {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: #555;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .btn.cancel-btn:hover {
+        color: #000;
+    }
+
+    /* Employee Card Preview */
+    .employee-card-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .employee-card-preview .profile-pic img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #c62828;
+    }
+
+    .employee-card-preview .employee-info h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #222;
+    }
+
+    .employee-card-preview .employee-info .role {
+        font-size: 0.95rem;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .employee-card-preview .employee-info p {
+        font-size: 0.9rem;
+        color: #555;
+        margin: 2px 0;
+    }
+
+    .delete-form {
+        display: flex;
+        justify-content: center;
+    }
+
+    .btn.delete-btn {
+        background: #c62828;
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn.delete-btn:hover {
+        background: #e53935;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

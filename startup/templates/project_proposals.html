@@ -1,0 +1,210 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Project Proposals - {{ project.name }}{% endblock %}
+{% block active_projects %}active{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="project-card">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="{% url 'startup:project_detail' project.id %}">← Back to Project</a>
+        </div>
+
+        <!-- Header -->
+        <div class="card-header">
+            <h1>Proposals for: {{ project.name }}</h1>
+        </div>
+
+        <!-- Proposal Table -->
+        {% if proposals %}
+        <table class="proposal-table">
+            <thead>
+                <tr>
+                    <th>Freelancer</th>
+                    <th>Proposal Text</th>
+                    <th>Timeline</th>
+                    <th>Expected Payment</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proposal in proposals %}
+                <tr id="proposal-{{ proposal.id }}">
+                    <td>{{ proposal.freelancer.user.username }}</td>
+                    <td>{{ proposal.proposal_text }}</td>
+                    <td>{{ proposal.expected_timeline|default:"—" }}</td>
+                    <td>${{ proposal.expected_payment|default:"—" }}</td>
+                    <td id="status-{{ proposal.id }}">{{ proposal.get_status_display }}</td>
+                    <td>
+                        {% if proposal.status == "PENDING" %}
+                        <button class="approve-btn" data-id="{{ proposal.id }}">Approve</button>
+                        <button class="reject-btn" data-id="{{ proposal.id }}">Reject</button>
+                        {% else %}
+                        {{ proposal.get_status_display }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No proposals submitted yet for this project.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .page-container {
+        padding: 30px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .project-card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 1000px;
+    }
+
+    .breadcrumb a {
+        color: #007bff;
+        text-decoration: none;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .card-header h1 {
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+    }
+
+    .proposal-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .proposal-table th,
+    .proposal-table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+
+    .proposal-table th {
+        background-color: #f4f4f4;
+        font-weight: 600;
+    }
+
+    .approve-btn,
+    .reject-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #fff;
+        font-weight: 500;
+        margin-right: 5px;
+    }
+
+    .approve-btn {
+        background-color: #28a745;
+    }
+
+    .approve-btn:hover {
+        background-color: #218838;
+    }
+
+    .reject-btn {
+        background-color: #dc3545;
+    }
+
+    .reject-btn:hover {
+        background-color: #b02a37;
+    }
+
+    @media(max-width: 768px) {
+
+        .proposal-table th,
+        .proposal-table td {
+            font-size: 0.85rem;
+            padding: 6px;
+        }
+
+        .card-header h1 {
+            font-size: 1.4rem;
+        }
+
+        .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrftoken = '{{ csrf_token }}';
+
+        function ajaxPost(url, proposalId) {
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            }).then(response => response.json());
+        }
+
+        // Approve buttons
+        document.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const proposalId = this.dataset.id;
+                if (confirm("Are you sure you want to approve this proposal?")) {
+                    ajaxPost("{% url 'approve_proposal' 0 %}".replace('0', proposalId), proposalId)
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('status-' + proposalId).innerText = "APPROVED";
+                                this.style.display = 'none';
+                                document.querySelector('#proposal-' + proposalId + ' .reject-btn').style.display = 'none';
+                            } else {
+                                alert(data.message);
+                            }
+                        });
+                }
+            });
+        });
+
+        // Reject buttons
+        document.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const proposalId = this.dataset.id;
+                if (confirm("Are you sure you want to reject this proposal?")) {
+                    ajaxPost("{% url 'reject_proposal' 0 %}".replace('0', proposalId), proposalId)
+                        .then(data => {
+                            if (data.success) {
+                                document.getElementById('status-' + proposalId).innerText = "REJECTED";
+                                this.style.display = 'none';
+                                document.querySelector('#proposal-' + proposalId + ' .approve-btn').style.display = 'none';
+                            } else {
+                                alert(data.message);
+                            }
+                        });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

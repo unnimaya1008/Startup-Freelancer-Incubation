@@ -1,0 +1,231 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Edit Project - {{ project.name }}{% endblock %}
+{% block active_projects %}active{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+    <!-- Edit Project Card -->
+    <div class="project-card">
+
+        <!-- Breadcrumb / Back Link -->
+        <div class="breadcrumb">
+            <a href="{% url 'startup:project_detail' project.id %}">← Back to Project Details</a>
+        </div>
+
+        <h1 class="card-title">Edit Project</h1>
+
+        <form method="POST" enctype="multipart/form-data" class="edit-form">
+            {% csrf_token %}
+
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label>Project Name</label>
+                    {{ form.name }}
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    {{ form.status }}
+                </div>
+
+                <div class="form-group">
+                    <label>Domain</label>
+                    {{ form.domain }}
+                </div>
+
+                <div class="form-group">
+                    <label>Required Experience</label>
+                    {{ form.required_experience }}
+                </div>
+
+                <div class="form-group">
+                    <label>Start Date</label>
+                    {{ form.start_date }}
+                </div>
+
+                <div class="form-group">
+                    <label>End Date</label>
+                    {{ form.end_date }}
+                </div>
+
+                <div class="form-group full-width">
+                    {{ form.assigned_to_freelancers }}
+                    <label class="ml-2">Assign to Freelancers</label>
+                </div>
+
+                <div class="form-group full-width" id="employeesField">
+                    <label>Assign Employees</label>
+                    {{ form.employees_assigned }}
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Description</label>
+                    {{ form.description }}
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Requirements File</label>
+                    {{ form.requirements_file }}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'startup:project_detail' project.id %}" class="btn cancel-btn">Cancel</a>
+                <button type="submit" class="btn save-btn">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Page Container */
+    .page-container {
+        min-height: 100vh;
+        padding: 50px 20px;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Project Card */
+    .project-card {
+        background-color: #fff;
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        max-width: 800px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb a {
+        display: inline-block;
+        margin-bottom: 15px;
+        color: #007bff;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    /* Card Title */
+    .card-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 20px;
+    }
+
+    /* Form Grid */
+    .edit-form .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .full-width {
+        grid-column: span 2;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        color: #fff;
+        transition: 0.2s;
+    }
+
+    .save-btn {
+        background-color: #28a745;
+    }
+
+    .save-btn:hover {
+        background-color: #218838;
+    }
+
+    .cancel-btn {
+        background-color: #6c757d;
+    }
+
+    .cancel-btn:hover {
+        background-color: #5a6268;
+    }
+
+    /* Responsive */
+    @media(max-width: 700px) {
+        .edit-form .grid-2 {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .form-actions .btn {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .main-content {
+            margin-left: 270px;
+            /* keep spacing for cards/charts from sidebar */
+            padding: 15px 30px 30px 30px;
+            /* less top padding */
+        }
+    }
+</style>
+
+<script>
+    const freelancerCheckbox = document.getElementById('id_assigned_to_freelancers');
+    const employeesGroup = document.getElementById('employeesField');
+
+    function toggleEmployeesField() {
+        employeesGroup.style.display = freelancerCheckbox.checked ? 'none' : 'block';
+    }
+
+    freelancerCheckbox?.addEventListener('change', toggleEmployeesField);
+    window.addEventListener('load', toggleEmployeesField);
+</script>
+{% endblock %}

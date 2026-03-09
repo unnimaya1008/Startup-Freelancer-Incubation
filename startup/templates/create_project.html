@@ -1,0 +1,227 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Create Project - {{ profile.startup_name }}{% endblock %}
+{% block active_projects %}active{% endblock %}
+
+{% block content %}
+
+<div class="header-wrapper">
+    <div class="page-header">
+        <a href="{% url 'startup:startup_projects' %}" class="back-btn">← Back to Projects</a>
+        <h2>📂 Create New Project</h2>
+        <p>Fill in the details to create a new project for your startup.</p>
+    </div>
+</div>
+
+<div class="form-container">
+    <form method="POST" enctype="multipart/form-data" class="project-form">
+        {% csrf_token %}
+        <div class="form-columns">
+
+            <!-- Left Panel: Project Info -->
+            <div class="form-left panel">
+                <h3>Project Information</h3>
+                <div class="form-group">
+                    {{ form.name.label_tag }} {{ form.name }}
+                </div>
+                <div class="form-group">
+                    {{ form.description.label_tag }} {{ form.description }}
+                </div>
+                <div class="form-group">
+                    {{ form.domain.label_tag }} {{ form.domain }}
+                </div>
+                <div class="form-group">
+                    {{ form.required_experience.label_tag }} {{ form.required_experience }}
+                </div>
+                <div class="form-group">
+                    {{ form.requirements_file.label_tag }} {{ form.requirements_file }}
+                </div>
+                <div class="form-row">
+                    <div class="form-group">{{ form.start_date.label_tag }} {{ form.start_date }}</div>
+                    <div class="form-group">{{ form.end_date.label_tag }} {{ form.end_date }}</div>
+                </div>
+                <div class="form-group">
+                    {{ form.status.label_tag }} {{ form.status }}
+                </div>
+            </div>
+
+            <!-- Right Panel: Assignment -->
+            <div class="form-right panel">
+                <h3>Assignment</h3>
+
+                <div class="form-group checkbox-group">
+                    {{ form.assigned_to_freelancers }}
+                    <label for="id_assigned_to_freelancers">Assign to Freelancers</label>
+                </div>
+
+                <div class="form-group" id="employees-assigned-group">
+                    <label for="id_employees_assigned">Assign Employees</label>
+                    {{ form.employees_assigned }}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn submit-btn">Create Project</button>
+        </div>
+    </form>
+</div>
+
+<!-- Styles -->
+<style>
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+
+    .header-wrapper {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .page-header h2 {
+        font-size: 2rem;
+        color: #222;
+    }
+
+    .page-header p {
+        color: #555;
+        margin-top: 6px;
+    }
+
+    .back-btn {
+        color: #c62828;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .back-btn:hover {
+        color: #e53935;
+    }
+
+    .form-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+        width: 100%;
+    }
+
+    .project-form {
+        width: 90%;
+        max-width: 1200px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-columns {
+        display: flex;
+        gap: 40px;
+        margin-top: 20px;
+        width: 100%;
+    }
+
+    .panel {
+        flex: 1;
+        background: #f9f9f9;
+        border-radius: 14px;
+        padding: 30px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .panel h3 {
+        font-size: 1.3rem;
+        color: #333;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .checkbox-group {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-actions {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .btn.submit-btn {
+        background: #c62828;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 10px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+
+    .btn.submit-btn:hover {
+        background: #e53935;
+        transform: translateY(-2px);
+    }
+
+    @media(max-width:1000px) {
+        .form-columns {
+            flex-direction: column;
+        }
+
+        .panel {
+            width: 100%;
+        }
+    }
+
+    /* Better select field for multiple employees */
+    #id_employees_assigned {
+        height: 150px;
+        border-radius: 10px;
+        background-color: #fff;
+    }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const freelancerCheckbox = document.getElementById('id_assigned_to_freelancers');
+    const employeesGroup = document.getElementById('employees-assigned-group');
+
+    function toggleEmployeesField() {
+        employeesGroup.style.display = freelancerCheckbox.checked ? 'none' : 'flex';
+    }
+
+    freelancerCheckbox?.addEventListener('change', toggleEmployeesField);
+    window.addEventListener('load', toggleEmployeesField);
+</script>
+{% endblock %}

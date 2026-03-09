@@ -1,0 +1,170 @@
+{% extends "base_freelancer.html" %}
+{% block title %}Milestones | {{ project.name }}{% endblock %}
+
+{% block content %}
+<section class="milestone-wrapper">
+
+    <div class="page-header">
+        <div>
+            <h2>📌 Milestones</h2>
+            <p class="muted">Project: <strong>{{ project.name }}</strong></p>
+        </div>
+
+        <a href="{% url 'freelancer:freelancer_create_milestone' project.id %}"
+           class="btn-primary">
+            ➕ Add Milestone
+        </a>
+    </div>
+
+    {% if milestones %}
+    <div class="milestone-list">
+        {% for m in milestones %}
+        <div class="milestone-card">
+
+            <div class="card-top">
+                <h3>{{ m.title }}</h3>
+                <span class="status {{ m.status|lower }}">{{ m.get_status_display }}</span>
+            </div>
+
+            <p class="desc">{{ m.description|default:"No description provided." }}</p>
+
+            <div class="info-row">
+                <span><strong>Due:</strong> {{ m.due_date|default:"—" }}</span>
+                <span><strong>Progress:</strong> {{ m.progress }}%</span>
+            </div>
+
+            {% if m.remarks %}
+            <div class="remarks">
+                <strong>Remarks:</strong> {{ m.remarks }}
+            </div>
+            {% endif %}
+
+            <div class="actions">
+                <a href="{% url 'freelancer:freelancer_update_milestone' m.id %}"
+                   class="btn-outline">✏️ Edit</a>
+
+                <form method="post"
+                      action="{% url 'freelancer:freelancer_delete_milestone' m.id %}"
+                      onsubmit="return confirm('Delete this milestone?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-danger">🗑 Delete</button>
+                </form>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="empty-box">
+            <p>No milestones created yet.</p>
+        </div>
+    {% endif %}
+
+    <div class="back-link">
+        <a href="{% url 'freelancer:freelancer_project_detail' project.id %}">
+            ← Back to Project
+        </a>
+    </div>
+
+</section>
+
+<style>
+.milestone-wrapper{
+    max-width: 900px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.milestone-list{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.milestone-card{
+    background:#fff;
+    border-radius:12px;
+    padding:16px;
+    border:1px solid rgba(0,0,0,0.08);
+}
+
+.card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.status{
+    padding:4px 10px;
+    border-radius:10px;
+    font-size:0.75rem;
+    font-weight:700;
+    color:#fff;
+}
+.status.pending{background:#f39c12;}
+.status.in_progress{background:#3498db;}
+.status.completed{background:#27ae60;}
+
+.desc{color:#444;margin:8px 0;}
+
+.info-row{
+    display:flex;
+    gap:20px;
+    font-size:0.85rem;
+    color:#555;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+}
+
+.btn-primary{
+    background:#1976d2;
+    color:#fff;
+    padding:8px 14px;
+    border-radius:8px;
+    font-weight:600;
+    text-decoration:none;
+}
+
+.btn-outline{
+    border:1px solid #1976d2;
+    color:#1976d2;
+    padding:6px 12px;
+    border-radius:8px;
+    text-decoration:none;
+}
+
+.btn-danger{
+    background:#c62828;
+    color:#fff;
+    border:none;
+    padding:6px 12px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.empty-box{
+    text-align:center;
+    padding:20px;
+    border:1px dashed #ccc;
+    border-radius:10px;
+}
+
+.back-link a{
+    color:#1976d2;
+    font-weight:600;
+    text-decoration:none;
+}
+</style>
+{% endblock %}

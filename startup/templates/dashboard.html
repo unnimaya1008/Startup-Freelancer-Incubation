@@ -1,0 +1,262 @@
+{% extends 'base_startup.html' %}
+
+{% block title %}Dashboard - {{ profile.startup_name }}{% endblock %}
+{% block active_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<!-- Info Cards -->
+<section class="dashboard-cards">
+    <!-- Projects Card -->
+    <div class="card">
+        <h3>📂 Projects</h3>
+        <div class="card-stats">
+            <span>Total: {{ projects_count }}</span>
+            <span>In Progress: <span class="badge orange">{{ projects_in_progress }}</span></span>
+            <span>Completed: <span class="badge green">{{ projects_completed }}</span></span>
+        </div>
+        <a href="{% url 'startup:startup_projects' %}">View Projects →</a>
+    </div>
+
+    <!-- Proposals Card -->
+    <div class="card">
+        <h3>📝 Proposals</h3>
+        <div class="card-stats">
+            <span>Submitted: {{ proposals_count }}</span>
+            <span>Approved: <span class="badge green">{{ proposals_approved }}</span></span>
+            <span>Rejected: <span class="badge red">{{ proposals_rejected }}</span></span>
+        </div>
+        <a href="{% url 'startup:project_proposals' %}">View Proposals →</a>
+    </div>
+
+    <!-- Funding Card -->
+    
+
+    <!-- Mentorship Card -->
+    <div class="card">
+        <h3>🎓 Mentorship</h3>
+        <div class="card-stats">
+            <span>Scheduled: {{ mentorship_count }}</span>
+            <span>Completed: <span class="badge green">{{ mentorship_completed }}</span></span>
+        </div>
+        <a href="{% url 'startup:startup_sessions' %}">View Sessions →</a>
+    </div>
+</section>
+
+<!-- Charts Section -->
+<section class="dashboard-charts">
+    <div class="chart-card">
+        <h3>📊 Project Status</h3>
+        <canvas id="projectStatusChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>📊 Proposal Status</h3>
+        <canvas id="proposalStatusChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>🎓 Mentorship Status</h3>
+        <canvas id="mentorshipChart"></canvas>
+    </div>
+</section>
+
+<!-- Styles -->
+<style>
+    /* Remove top whitespace above header */
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+
+    /* Cards Layout */
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+        margin-bottom: 30px;
+    }
+
+    /* Individual Card */
+    .card {
+        background: #fff;
+        padding: 20px 25px;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .card h3 {
+        margin-bottom: 15px;
+        font-size: 1.25rem;
+    }
+
+    .card-stats span {
+        display: block;
+        margin: 5px 0;
+        font-size: 0.95rem;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.85rem;
+    }
+
+    .badge.green {
+        background: #43a047;
+    }
+
+    .badge.red {
+        background: #e53935;
+    }
+
+    .badge.orange {
+        background: #fb8c00;
+    }
+
+    /* Card links */
+    .card a {
+        display: inline-block;
+        margin-top: 12px;
+        color: #c62828;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .card a:hover {
+        color: #e53935;
+    }
+
+    /* Charts Section */
+    .dashboard-charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .chart-card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 14px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+        text-align: center;
+    }
+
+    .chart-card h3 {
+        margin-bottom: 15px;
+    }
+
+    .chart-card canvas {
+        width: 100% !important;
+        height: 270px !important;
+    }
+
+    /* Responsive */
+    @media(max-width: 700px) {
+
+        .dashboard-cards,
+        .dashboard-charts {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { precision: 0 }
+            }
+        }
+    };
+
+    /* ========= PROJECT STATUS ========= */
+    const projectCtx = document.getElementById('projectStatusChart');
+    const projectChart = new Chart(projectCtx, {
+        type: 'line',
+        data: {
+            labels: ['Planned', 'Ongoing', 'Completed'],
+            datasets: [{
+                label: 'Projects',
+                data: [
+                    {{ projects_planned }},
+                    {{ projects_in_progress }},
+                    {{ projects_completed }}
+                ],
+                borderColor: '#1976d2',
+                backgroundColor: 'rgba(25,118,210,0.15)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5
+            }]
+        },
+        options: commonOptions
+    });
+
+    /* ========= PROPOSAL STATUS ========= */
+    const proposalCtx = document.getElementById('proposalStatusChart');
+    const proposalChart = new Chart(proposalCtx, {
+        type: 'line',
+        data: {
+            labels: ['Submitted', 'Approved', 'Rejected'],
+            datasets: [{
+                label: 'Proposals',
+                data: [
+                    {{ proposals_count }},
+                    {{ proposals_approved }},
+                    {{ proposals_rejected }}
+                ],
+                borderColor: '#e53935',
+                backgroundColor: 'rgba(229,57,53,0.15)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5
+            }]
+        },
+        options: commonOptions
+    });
+
+    /* ========= MENTORSHIP STATUS ========= */
+    const mentorshipCtx = document.getElementById('mentorshipChart');
+    const mentorshipChart = new Chart(mentorshipCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Scheduled', 'Completed'],
+            datasets: [{
+                label: 'Mentorship Sessions',
+                data: [
+                    {{ mentorship_count }},
+                    {{ mentorship_completed }}
+                ],
+                backgroundColor: ['#fb8c00', '#43a047']
+            }]
+        },
+        options: commonOptions
+    });
+
+});
+</script>
+{% endblock %}

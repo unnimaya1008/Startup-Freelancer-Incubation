@@ -1,0 +1,48 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Create Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h2>👤 Create Your Freelancer Profile</h2>
+    <p class="subtitle">Complete your profile to start applying for projects.</p>
+
+    <form method="POST" enctype="multipart/form-data" class="profile-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary">Create Profile</button>
+    </form>
+</div>
+
+<style>
+    .profile-container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .subtitle {
+        color: #555;
+        margin-bottom: 20px;
+    }
+
+    .profile-form p {
+        margin-bottom: 15px;
+    }
+
+    .btn-primary {
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background: #1565c0;
+    }
+</style>
+{% endblock %}

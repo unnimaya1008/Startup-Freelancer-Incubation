@@ -1,0 +1,374 @@
+{% extends "mentor_base.html" %}
+
+{% block title %}Dashboard — SubHub Mentor Portal{% endblock %}
+
+{% block page_title %}
+Welcome, {{ mentor_profile.user.first_name|default:mentor_profile.user.username }}
+{% endblock %}
+
+{% block page_subtitle %}
+Overview of your mentoring activity and session requests
+{% endblock %}
+
+{% block content %}
+<style>
+  :root{
+    --gap: 20px;
+    --soft-bg: rgba(8,160,148,0.06);
+    --border-soft: rgba(0,0,0,0.06);
+    --muted-2: rgba(31,45,45,0.6);
+  }
+
+  /* ===== LAYOUT ===== */
+  .dash {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ===== TOP GRID ===== */
+  .top-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width:900px){
+    .top-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===== PROFILE CARD ===== */
+  .profile-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .profile-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: var(--soft-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--accent-teal);
+    overflow: hidden;
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .p-name { font-weight: 900; font-size: 16px; }
+  .p-email { font-size: 13px; color: var(--muted-2); }
+
+  .profile-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-primary {
+    background: var(--accent-teal);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .btn-outline {
+    border: 1px solid var(--border-soft);
+    color: var(--accent-teal);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  /* ===== STATS ===== */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 16px;
+  }
+
+  @media (max-width:600px){
+    .stats { grid-template-columns: 1fr; }
+  }
+
+  .stat {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid var(--border-soft);
+  }
+
+  .stat .num {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--accent-teal);
+  }
+
+  .stat .label {
+    font-size: 13px;
+    color: var(--muted-2);
+    margin-top: 4px;
+  }
+
+  /* ===== TABLE ===== */
+  .table-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.04);
+  }
+
+  table.sessions {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  table.sessions th {
+    text-align: left;
+    padding: 12px;
+    color: var(--accent-teal);
+    font-weight: 900;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  table.sessions td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  table.sessions tr:hover {
+    background: rgba(8,160,148,0.03);
+  }
+
+  /* ===== BADGES ===== */
+  .badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-block;
+  }
+
+  .b-pending {
+    background: rgba(8,160,148,0.1);
+    color: var(--accent-teal);
+  }
+
+  .b-approved {
+    background: rgba(8,160,148,0.18);
+    color: var(--accent-teal-dark);
+  }
+
+  .b-completed {
+    background: rgba(0,0,0,0.08);
+    color: var(--muted-2);
+  }
+
+  .b-cancelled {
+    background: rgba(220,80,80,0.08);
+    color: #b23a3a;
+  }
+
+  /* ===== ACTIONS ===== */
+  .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    border: 1px solid var(--border-soft);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .action-approve {
+    background: var(--accent-teal);
+    color: #fff;
+    border: none;
+  }
+
+  .action-reject {
+    color: var(--accent-teal);
+  }
+</style>
+
+<div class="dash">
+
+  <!-- ===== TOP GRID ===== -->
+  <div class="top-grid">
+
+    <!-- PROFILE -->
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="avatar">
+          {% if mentor_profile.profile_image %}
+            <img src="{{ mentor_profile.profile_image.url }}">
+          {% else %}
+            {{ mentor_profile.user.first_name|default:mentor_profile.user.username|slice:":1"|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <div class="p-name">
+            {{ mentor_profile.user.first_name|default:mentor_profile.user.username }}
+          </div>
+          <div class="p-email">{{ mentor_profile.user.email }}</div>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <a href="{% url 'mentors:mentor_profile' %}" class="btn-primary">
+          View Profile
+        </a>
+        <a href="{% url 'mentors:mentorship_sessions' %}" class="btn-outline">
+          Manage Sessions
+        </a>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat">
+        <div class="num">{{ sessions|length }}</div>
+        <div class="label">Total Sessions</div>
+      </div>
+
+      <div class="stat">
+        <div class="num">{{ mentor_profile.experience_years }}</div>
+        <div class="label">Years Experience</div>
+      </div>
+
+      <!-- ✅ ACTIVE REQUESTS -->
+      <div class="stat">
+        <div class="num">{{ active_requests }}</div>
+        <div class="label">Active Requests</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== SESSIONS TABLE ===== -->
+  <div class="table-card">
+    <h3 style="margin-top:0">Recent Mentorship Sessions</h3>
+
+    <table class="sessions">
+      <thead>
+        <tr>
+          <th>Startup</th>
+          <th>Topic</th>
+          <th>Date</th>
+          <th>Approval</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for s in sessions %}
+        <tr>
+          <td>{{ s.startup.startup_name }}</td>
+          <td>{{ s.topic }}</td>
+          <td>{{ s.session_date|date:"M d, Y H:i" }}</td>
+
+          <!-- Approval -->
+          <td>
+            {% if s.approval_status == "PENDING" %}
+              <span class="badge b-pending">Pending</span>
+            {% elif s.approval_status == "APPROVED" %}
+              <span class="badge b-approved">Approved</span>
+            {% else %}
+              <span class="badge b-cancelled">Rejected</span>
+            {% endif %}
+          </td>
+
+          <!-- Status -->
+          <td>
+            {% if s.status == "REQUESTED" %}
+              <span class="badge b-pending">Requested</span>
+            {% elif s.status == "SCHEDULED" %}
+              <span class="badge b-approved">Scheduled</span>
+            {% elif s.status == "COMPLETED" %}
+              <span class="badge b-completed">Completed</span>
+            {% else %}
+              <span class="badge b-cancelled">Cancelled</span>
+            {% endif %}
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <div class="actions">
+              {% if s.mentor.user == request.user %}
+
+                {% if s.status == "COMPLETED" %}
+                  <span class="badge b-completed">Completed</span>
+
+                {% elif s.approval_status == "PENDING" %}
+                  <form method="post" action="{% url 'mentors:approve_session' s.id %}">
+                    {% csrf_token %}
+                    <button class="action-btn action-approve">Approve</button>
+                  </form>
+
+                  <form method="post" action="{% url 'mentors:reject_session' s.id %}">
+                    {% csrf_token %}
+                    <button class="action-btn action-reject">Reject</button>
+                  </form>
+
+                {% else %}
+                  <form method="post"
+                        action="{% url 'mentors:update_session_status' s.id 'COMPLETED' %}">
+                    {% csrf_token %}
+                    <button class="action-btn action-approve">Complete</button>
+                  </form>
+
+                  <form method="post"
+                        action="{% url 'mentors:update_session_status' s.id 'CANCELLED' %}">
+                    {% csrf_token %}
+                    <button class="action-btn action-reject">Cancel</button>
+                  </form>
+                {% endif %}
+
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6"
+              style="text-align:center;color:var(--muted-2);padding:20px;">
+            No sessions found.
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Edit Skill{% endblock %}
+
+{% block content %}
+<section class="skills-section">
+    <h2>✏️ Edit Skill</h2>
+
+    <div class="edit-skill-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Skill Name -->
+            <div class="form-group">
+                <label for="id_name">Skill Name</label>
+                {{ form.name }}
+            </div>
+
+            <!-- Proficiency -->
+            <div class="form-group">
+                <label for="id_proficiency">Proficiency</label>
+                {{ form.proficiency }}
+            </div>
+
+            <!-- Image Preview -->
+            {% if skill.image %}
+            <div class="form-group">
+                <label>Current Image</label>
+                <img src="{{ skill.image.url }}" alt="{{ skill.name }}"
+                    style="width:100px; height:100px; object-fit:cover; border-radius:50%;">
+            </div>
+            {% endif %}
+
+            <!-- Upload New Image -->
+            <div class="form-group">
+                <label for="id_image">Change Image</label>
+                {{ form.image }}
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-update">💾 Update Skill</button>
+            <a href="{% url 'freelancer:manage_skills' %}" class="btn btn-cancel">✖ Cancel</a>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .skills-section {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 20px;
+        font-family: 'Inter', sans-serif;
+        background: #f9fafb;
+        border-radius: 15px;
+    }
+
+    h2 {
+        text-align: center;
+        color: #1e40af;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    select,
+    input[type="file"] {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        font-size: 0.95rem;
+    }
+
+    .btn-update {
+        background: #16a34a;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 10px;
+        border: none;
+    }
+
+    .btn-cancel {
+        background: #ef4444;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+    }
+</style>
+{% endblock %}

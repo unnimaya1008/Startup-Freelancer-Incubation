@@ -1,0 +1,277 @@
+{% extends "mentor_base.html" %}
+{% block title %}Mentorship Sessions — SubHub Mentor Portal{% endblock %}
+
+{% block page_title %}Mentorship Sessions{% endblock %}
+{% block page_subtitle %}Approve/reject requests and update statuses{% endblock %}
+
+{% block content %}
+<style>
+  /* Sessions page — professional, teal-only */
+  .sessions-shell { display:flex; flex-direction:column; gap:16px; }
+  .sessions-header {
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+
+  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .input, .select {
+    padding:9px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.06); background:#fff;
+    font-size:14px;
+  }
+
+  .card { background:var(--card-bg); padding:14px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.04); }
+
+  /* table */
+  .table-wrap { overflow:auto; }
+  table.sessions {
+    width:100%; border-collapse:collapse; min-width:720px; font-size:14px;
+  }
+  table.sessions thead th {
+    text-align:left; padding:12px 14px; color:var(--accent-teal); font-weight:800;
+    border-bottom:1px solid rgba(15,40,40,0.06);
+  }
+  table.sessions tbody td {
+    padding:12px 14px; border-bottom:1px solid rgba(0,0,0,0.03); color:var(--muted);
+    vertical-align:middle;
+  }
+  table.sessions tbody tr:hover { background: rgba(8,160,148,0.03); }
+
+  /* badges */
+  .badge { display:inline-block; padding:6px 10px; border-radius:999px; font-weight:800; font-size:12px; }
+  .badge-pending { background: rgba(8,160,148,0.08); color:var(--accent-teal); }
+  .badge-approved { background: rgba(8,160,148,0.12); color:var(--accent-teal-dark); }
+  .badge-rejected { background: rgba(200,50,50,0.06); color:#b23a3a; }
+  .badge-requested { background: rgba(8,160,148,0.06); color:var(--accent-teal); }
+  .badge-scheduled { background: rgba(8,160,148,0.10); color:var(--accent-teal-dark); }
+  .badge-completed { background: rgba(0,0,0,0.06); color:var(--muted); }
+  .badge-cancelled { background: rgba(200,50,50,0.06); color:#b23a3a; }
+
+  /* action buttons */
+  .action {
+    padding:8px 12px; border-radius:8px; font-weight:700; cursor:pointer; border:none; text-decoration:none;
+  }
+  .action-approve { background:var(--accent-teal); color:#fff; }
+  .action-reject { background:transparent; color:var(--accent-teal); border:1px solid rgba(8,160,148,0.08); }
+  .action-ghost { background:transparent; color:var(--muted); border:1px solid rgba(0,0,0,0.04); }
+
+  /* disabled state */
+  .action[disabled], .action[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+  }
+
+  /* small screens: stack rows */
+  @media (max-width:820px){
+    .table-wrap { overflow:visible; }
+    table.sessions thead { display:none; }
+    table.sessions, table.sessions tbody, table.sessions tr, table.sessions td { display:block; width:100%; }
+    table.sessions tr { margin-bottom:12px; border:1px solid rgba(0,0,0,0.04); border-radius:10px; padding:10px; }
+    table.sessions td { padding:8px 6px; border-bottom:none; }
+    .row-label { font-weight:700; color:var(--accent-teal); display:block; margin-bottom:4px; }
+    .actions-cell { display:flex; gap:8px; margin-top:8px; }
+  }
+
+  .muted-small { color:var(--muted); font-size:13px; }
+
+  /* ensure no underline on button-like anchors */
+  a { text-decoration:none; }
+
+</style>
+
+<div class="sessions-shell">
+
+  <div class="card sessions-header" role="region" aria-label="sessions header">
+    <div style="font-weight:900">All sessions</div>
+
+    <div class="controls" aria-label="session controls">
+      <input id="q" class="input" type="search" placeholder="Search startup, topic..." aria-label="Search sessions" oninput="applyFilters()">
+
+      <select id="approvalFilter" class="select" onchange="applyFilters()">
+        <option value="">All approvals</option>
+        <option value="PENDING">Pending</option>
+        <option value="APPROVED">Approved</option>
+        <option value="REJECTED">Rejected</option>
+      </select>
+
+      <select id="statusFilter" class="select" onchange="applyFilters()">
+        <option value="">All statuses</option>
+        <option value="REQUESTED">Requested</option>
+        <option value="SCHEDULED">Scheduled</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+
+      <input id="fromDate" class="input" type="date" onchange="applyFilters()" aria-label="From date">
+      <input id="toDate" class="input" type="date" onchange="applyFilters()" aria-label="To date">
+
+      <button class="action action-ghost" onclick="resetFilters()" title="Reset filters">Reset</button>
+    </div>
+  </div>
+
+  <div class="card table-wrap" role="region" aria-label="mentorship sessions table">
+    <table class="sessions" id="sessionsTable" aria-describedby="sessions-desc">
+      <caption id="sessions-desc" style="display:none">List of mentorship sessions for the signed-in mentor.</caption>
+      <thead>
+        <tr>
+          <th>Startup</th>
+          <th>Topic</th>
+          <th>Date</th>
+          <th>Approval</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for s in sessions %}
+        <tr data-startup="{{ s.startup.startup_name|lower }}" data-topic="{{ s.topic|lower }}" data-approval="{{ s.approval_status }}" data-status="{{ s.status }}" data-date="{{ s.session_date|date:'Y-m-d' }}">
+          <td class="startup">
+            <span class="desktop">{{ s.startup.startup_name }}</span>
+            <span class="mobile"><span class="row-label">Startup</span>{{ s.startup.startup_name }}</span>
+          </td>
+
+          <td class="topic">
+            <span class="desktop">{{ s.topic }}</span>
+            <span class="mobile"><span class="row-label">Topic</span>{{ s.topic }}</span>
+          </td>
+
+          <td class="date">
+            <span class="desktop">{{ s.session_date|date:"M d, Y H:i" }}</span>
+            <span class="mobile"><span class="row-label">Date</span>{{ s.session_date|date:"M d, Y H:i" }}</span>
+          </td>
+
+          <td class="approval">
+            {% if s.approval_status == "PENDING" %}
+              <span class="badge badge-pending">Pending</span>
+            {% elif s.approval_status == "APPROVED" %}
+              <span class="badge badge-approved">Approved</span>
+            {% elif s.approval_status == "REJECTED" %}
+              <span class="badge badge-rejected">Rejected</span>
+            {% else %}
+              <span class="badge">{{ s.approval_status }}</span>
+            {% endif %}
+            <span class="mobile"><div class="muted-small">Approval</div></span>
+          </td>
+
+          <td class="status">
+            {% if s.status == "REQUESTED" %}
+              <span class="badge badge-requested">Requested</span>
+            {% elif s.status == "SCHEDULED" %}
+              <span class="badge badge-scheduled">Scheduled</span>
+            {% elif s.status == "COMPLETED" %}
+              <span class="badge badge-completed">Completed</span>
+            {% elif s.status == "CANCELLED" %}
+              <span class="badge badge-cancelled">Cancelled</span>
+            {% else %}
+              <span class="badge">{{ s.status }}</span>
+            {% endif %}
+            <span class="mobile"><div class="muted-small">Status</div></span>
+          </td>
+
+          <td class="actions-col">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              {% if s.mentor.user == request.user %}
+                {% if s.status == "COMPLETED" %}
+                  <!-- If session is completed: show single disabled indicator -->
+                  <button class="action action-ghost" aria-disabled="true" disabled title="Session completed">Completed</button>
+
+                {% else %}
+                  {% if s.approval_status == "PENDING" %}
+                    <form method="post" action="{% url 'mentors:approve_session' s.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button class="action action-approve" type="submit" onclick="return confirm('Approve this session request?')">Approve</button>
+                    </form>
+
+                    <form method="post" action="{% url 'mentors:reject_session' s.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button class="action action-reject" type="submit" onclick="return confirm('Reject this session request?')">Reject</button>
+                    </form>
+                  {% else %}
+                    <form method="post" action="{% url 'mentors:update_session_status' s.id 'COMPLETED' %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button class="action action-approve" type="submit">Complete</button>
+                    </form>
+
+                    <form method="post" action="{% url 'mentors:update_session_status' s.id 'CANCELLED' %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button class="action action-reject" type="submit">Cancel</button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+              {% else %}
+                <span class="muted-small">Not authorized</span>
+              {% endif %}
+            </div>
+
+            <div class="mobile actions-cell">
+              <!-- mobile space: place quick actions here if needed -->
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+          <tr><td class="muted" colspan="6">No mentorship sessions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Client-side filtering (search, approval, status, date range)
+  function applyFilters(){
+    const q = (document.getElementById('q').value || '').trim().toLowerCase();
+    const approval = document.getElementById('approvalFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const from = document.getElementById('fromDate').value;
+    const to = document.getElementById('toDate').value;
+
+    const rows = document.querySelectorAll('#sessionsTable tbody tr');
+
+    rows.forEach(row => {
+      if (row.classList.contains('empty-row')) return;
+
+      const startup = row.dataset.startup || '';
+      const topic = row.dataset.topic || '';
+      const rowApproval = row.dataset.approval || '';
+      const rowStatus = row.dataset.status || '';
+      const rowDate = row.dataset.date || '';
+
+      // text match
+      const matchesQuery = !q || startup.includes(q) || topic.includes(q);
+
+      // filters
+      const matchesApproval = !approval || rowApproval === approval;
+      const matchesStatus = !status || rowStatus === status;
+
+      // date range
+      let matchesDate = true;
+      if (from) {
+        matchesDate = matchesDate && (rowDate >= from);
+      }
+      if (to) {
+        matchesDate = matchesDate && (rowDate <= to);
+      }
+
+      row.style.display = (matchesQuery && matchesApproval && matchesStatus && matchesDate) ? '' : 'none';
+    });
+  }
+
+  function resetFilters(){
+    document.getElementById('q').value = '';
+    document.getElementById('approvalFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value = '';
+    applyFilters();
+  }
+
+  // keyboard shortcut: focus search with '/'
+  document.addEventListener('keydown', function(e){
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      document.getElementById('q').focus();
+    }
+  });
+</script>
+{% endblock %}

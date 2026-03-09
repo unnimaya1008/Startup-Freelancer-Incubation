@@ -1,0 +1,214 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Employee Details - {{ employee.name }}{% endblock %}
+{% block active_employees %}active{% endblock %}
+
+{% block content %}
+<div class="header-wrapper">
+    <div class="page-header">
+        <a href="{% url 'startup:startup_employees' %}" class="back-btn">← Back to Employees</a>
+        <h2>👤 Employee Details</h2>
+        <p>View employee information.</p>
+    </div>
+</div>
+
+<div class="employee-card-wrapper">
+    <div class="employee-card">
+        <div class="employee-top">
+            {% if employee.profile_picture %}
+            <img src="{{ employee.profile_picture.url }}" alt="{{ employee.name }}" class="employee-pic">
+            {% else %}
+            <div class="employee-pic-placeholder">{{ employee.name|slice:":1" }}</div>
+            {% endif %}
+            <div class="employee-info">
+                <h3>{{ employee.name }}</h3>
+                <p class="role">{{ employee.role|default:"No role" }}</p>
+            </div>
+        </div>
+
+        <div class="employee-details">
+            <p><strong>Email:</strong> {{ employee.email|default:"N/A" }}</p>
+            <p><strong>Phone:</strong> {{ employee.phone_number|default:"N/A" }}</p>
+            <p><strong>Date of Joining:</strong> {{ employee.date_of_joining|default:"N/A" }}</p>
+            <p><strong>Currently Active:</strong> {{ employee.is_active|yesno:"Yes,No" }}</p>
+            <p><strong>LinkedIn:</strong>
+                {% if employee.linkedin_profile %}
+                <a href="{{ employee.linkedin_profile }}" target="_blank">{{ employee.linkedin_profile }}</a>
+                {% else %}N/A{% endif %}
+            </p>
+            <p><strong>GitHub:</strong>
+                {% if employee.github_profile %}
+                <a href="{{ employee.github_profile }}" target="_blank">{{ employee.github_profile }}</a>
+                {% else %}N/A{% endif %}
+            </p>
+            <p><strong>Skills:</strong> {{ employee.skills|default:"N/A" }}</p>
+        </div>
+
+        <div class="view-buttons">
+            <a href="{% url 'startup:update_employee' employee.id %}" class="btn edit-btn">Edit</a>
+            <a href="{% url 'startup:delete_employee' employee.id %}" class="btn delete-btn"
+                onclick="return confirm('Are you sure you want to delete this employee?');">Delete</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    
+    .header-wrapper {
+        margin: 20px 30px 0 100px;
+    }
+
+    .page-header h2 {
+        font-size: 1.8rem;
+        margin: 0 0 5px 0;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        color: #555;
+        margin-bottom: 15px;
+    }
+
+    .back-btn {
+        color: #c62828;
+        text-decoration: none;
+        margin-bottom: 15px;
+        display: inline-block;
+    }
+
+    .back-btn:hover {
+        color: #e53935;
+    }
+
+    .employee-card-wrapper {
+        display: flex;
+        justify-content: center;
+        margin: 0 100px 30px 100px;
+    }
+
+    .employee-card {
+        background: #f9f9f9;
+        border-radius: 14px;
+        padding: 25px;
+        max-width: 800px;
+        width: 100%;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .employee-top {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .employee-pic {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #c62828;
+    }
+
+    .employee-pic-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #c62828;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        font-weight: 600;
+    }
+
+    .employee-info h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #222;
+    }
+
+    .employee-info .role {
+        font-size: 1rem;
+        color: #555;
+    }
+
+    .employee-details p {
+        margin: 8px 0;
+        font-size: 0.95rem;
+        color: #333;
+    }
+
+    .employee-details a {
+        color: #c62828;
+        text-decoration: none;
+    }
+
+    .employee-details a:hover {
+        text-decoration: underline;
+    }
+
+    .view-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .btn.edit-btn,
+    .btn.delete-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #fff;
+        font-weight: 500;
+        transition: 0.2s;
+    }
+
+    .btn.edit-btn {
+        background: #1976d2;
+    }
+
+    .btn.edit-btn:hover {
+        background: #1565c0;
+    }
+
+    .btn.delete-btn {
+        background: #c62828;
+    }
+
+    .btn.delete-btn:hover {
+        background: #e53935;
+    }
+
+    @media(max-width:900px) {
+        .header-wrapper {
+            margin: 20px 20px 0 20px;
+        }
+
+        .employee-card-wrapper {
+            margin: 0 20px 30px 20px;
+        }
+
+        .employee-top {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .employee-info h3 {
+            text-align: center;
+        }
+
+        .employee-info .role {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}

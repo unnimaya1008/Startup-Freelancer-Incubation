@@ -1,0 +1,210 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Edit Employee - {{ employee.name }}{% endblock %}
+{% block active_employees %}active{% endblock %}
+
+{% block content %}
+<div class="header-wrapper">
+    <div class="page-header">
+        <a href="{% url 'startup:employee_detail' employee.id %}" class="back-btn">← Back to Details</a>
+        <h2>✏️ Edit Employee</h2>
+        <p>Update employee information.</p>
+    </div>
+</div>
+
+<div class="employee-card-wrapper">
+    <div class="employee-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-columns">
+                <!-- Left Panel -->
+                <div class="form-left">
+                    <div class="form-group">{{ form.name.label_tag }} {{ form.name }}</div>
+                    <div class="form-group">{{ form.role.label_tag }} {{ form.role }}</div>
+                    <div class="form-group">{{ form.email.label_tag }} {{ form.email }}</div>
+                    <div class="form-group">{{ form.phone_number.label_tag }} {{ form.phone_number }}</div>
+                    <div class="form-group">{{ form.date_of_joining.label_tag }} {{ form.date_of_joining }}</div>
+                    <div class="form-group checkbox-group">{{ form.is_active.label_tag }} {{ form.is_active }}</div>
+                </div>
+
+                <!-- Right Panel -->
+                <div class="form-right">
+                    <div class="form-group">
+                        {{ form.profile_picture.label_tag }}
+                        {{ form.profile_picture }}
+                        <div id="preview" style="margin-top:10px;">
+                            {% if employee.profile_picture %}
+                            <img src="{{ employee.profile_picture.url }}" style="max-width:120px; border-radius:8px;">
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">{{ form.linkedin_profile.label_tag }} {{ form.linkedin_profile }}</div>
+                    <div class="form-group">{{ form.github_profile.label_tag }} {{ form.github_profile }}</div>
+                    <div class="form-group">{{ form.skills.label_tag }} {{ form.skills }}</div>
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn submit-btn">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .header-wrapper {
+        margin: 20px 30px 0 100px;
+    }
+
+    .page-header h2 {
+        font-size: 1.8rem;
+        margin: 0 0 5px 0;
+        font-weight: 600;
+    }
+
+    .page-header p {
+        color: #555;
+        margin-bottom: 15px;
+    }
+
+    .back-btn {
+        color: #c62828;
+        text-decoration: none;
+        margin-bottom: 15px;
+        display: inline-block;
+    }
+
+    .back-btn:hover {
+        color: #e53935;
+    }
+
+    .employee-card-wrapper {
+        display: flex;
+        justify-content: center;
+        margin: 0 100px 30px 100px;
+    }
+
+    .employee-card {
+        background: #f9f9f9;
+        border-radius: 14px;
+        padding: 25px;
+        max-width: 900px;
+        width: 100%;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-columns {
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
+
+    .form-left,
+    .form-right {
+        flex: 1;
+        min-width: 280px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        font-size: 0.95rem;
+        width: 100%;
+        background: #fff;
+    }
+
+    textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .checkbox-group {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #preview img {
+        max-width: 120px;
+        border-radius: 8px;
+    }
+
+    .form-buttons {
+        display: flex;
+        justify-content: flex-start;
+        gap: 15px;
+    }
+
+    .btn.submit-btn {
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn.submit-btn:hover {
+        background: #1565c0;
+        transform: translateY(-2px);
+    }
+
+    @media(max-width:900px) {
+        .header-wrapper {
+            margin: 20px 20px 0 20px;
+        }
+
+        .employee-card-wrapper {
+            margin: 0 20px 30px 20px;
+        }
+
+        .form-columns {
+            flex-direction: column;
+        }
+        
+        .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+    }
+</style>
+
+<script>
+    const profileInput = document.getElementById('id_profile_picture');
+    const preview = document.getElementById('preview');
+
+    if (profileInput) {
+        profileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.innerHTML = `<img src="${e.target.result}" style="max-width:120px; border-radius:8px;">`;
+            }
+            reader.readAsDataURL(file);
+        });
+    }
+</script>
+{% endblock %}

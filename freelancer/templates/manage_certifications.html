@@ -1,0 +1,270 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}Certifications{% endblock %}
+
+{% block content %}
+<section class="certifications-section">
+    <header>
+        <h2>🎓 My Certifications</h2>
+        <button class="btn btn-primary" id="addCertBtn">+ Add New</button>
+    </header>
+
+    <!-- Popup Modal Form -->
+    <div id="certModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>{{ edit_cert|yesno:"Edit Certification,Add New Certification" }}</h3>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">
+                    {{ edit_cert|yesno:"Update,Add" }}
+                </button>
+                {% if edit_cert %}
+                <a href="{% url 'freelancer:manage_certifications' %}" class="btn btn-secondary">Cancel</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Certifications Grid -->
+    <div class="cert-grid">
+        {% if certifications %}
+        {% for cert in certifications %}
+        <div class="cert-card">
+            <div class="cert-img-box">
+                {% if cert.certificate_image %}
+                <img src="{{ cert.certificate_image.url }}" alt="{{ cert.title }}">
+                {% else %}
+                <div class="cert-placeholder">📜</div>
+                {% endif %}
+            </div>
+            <div class="cert-info">
+                <h4>{{ cert.title }}</h4>
+                <p class="issuer">{{ cert.issuer|default:"Unknown Issuer" }}</p>
+                <p class="date">📅 {{ cert.issue_date|date:"M d, Y"|default:"No date" }}</p>
+                <div class="cert-links">
+                    {% if cert.certificate_file %}
+                    <a href="{{ cert.certificate_file.url }}" target="_blank">📄 File</a>
+                    {% endif %}
+                    {% if cert.certificate_url %}
+                    <a href="{{ cert.certificate_url }}" target="_blank">🔗 Online</a>
+                    {% endif %}
+                </div>
+                <div class="cert-actions">
+                    <a href="?edit={{ cert.id }}" title="Edit">✏️</a>
+                    <a href="{% url 'freelancer:delete_certification' cert.id %}"
+                        onclick="return confirm('Delete {{ cert.title }}?')" title="Delete">🗑️</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="empty">No certifications added yet.</p>
+        {% endif %}
+    </div>
+</section>
+
+{% block extra_css %}
+<style>
+    /* ---------- Layout ---------- */
+    .certifications-section {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        background: linear-gradient(180deg, #f7faff, #ffffff);
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .certifications-section header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .certifications-section h2 {
+        font-size: 1.8rem;
+        color: #1976d2;
+        font-weight: 600;
+    }
+
+    /* ---------- Grid ---------- */
+    .cert-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 25px;
+    }
+
+    .cert-card {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .cert-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .cert-img-box {
+        height: 160px;
+        background: #f1f5f9;
+    }
+
+    .cert-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .cert-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        font-size: 2rem;
+        color: #9ca3af;
+    }
+
+    .cert-info {
+        padding: 15px;
+    }
+
+    .cert-info h4 {
+        font-size: 1.05rem;
+        color: #111827;
+        margin-bottom: 5px;
+    }
+
+    .cert-info .issuer {
+        color: #555;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .cert-info .date {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-bottom: 10px;
+    }
+
+    .cert-links a {
+        margin-right: 10px;
+        font-size: 0.9rem;
+        color: #1976d2;
+        text-decoration: none;
+    }
+
+    .cert-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        font-size: 1.1rem;
+    }
+
+    .cert-actions a {
+        color: #6b7280;
+        text-decoration: none;
+    }
+
+    .cert-actions a:hover {
+        color: #1976d2;
+    }
+
+    /* ---------- Modal ---------- */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        padding-top: 80px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+        background: #fff;
+        margin: auto;
+        padding: 25px 30px;
+        border-radius: 12px;
+        width: 400px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-content h3 {
+        color: #1976d2;
+        margin-bottom: 15px;
+    }
+
+    .modal-content form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-content .btn {
+        margin-top: 10px;
+    }
+
+    .close {
+        float: right;
+        font-size: 22px;
+        cursor: pointer;
+    }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+        display: inline-block;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .btn-primary {
+        background: #1976d2;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background: #1259a8;
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #111827;
+    }
+
+    .empty {
+        text-align: center;
+        color: #6b7280;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+        .modal-content {
+            width: 90%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Modal Toggle
+    const modal = document.getElementById("certModal");
+    const btn = document.getElementById("addCertBtn");
+    const closeBtn = document.querySelector(".close");
+    if (btn) btn.onclick = () => (modal.style.display = "block");
+    if (closeBtn) closeBtn.onclick = () => (modal.style.display = "none");
+    window.onclick = e => { if (e.target == modal) modal.style.display = "none"; };
+</script>
+{% endblock %}
+{% endblock %}

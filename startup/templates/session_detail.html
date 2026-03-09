@@ -1,0 +1,121 @@
+{% extends 'base_startup.html' %}
+
+{% block content %}
+<div class="panel">
+    <h2>Session Details</h2>
+
+    <p><strong>Mentor:</strong> {{ session.mentor.user.username }}</p>
+    <p><strong>Topic:</strong> {{ session.topic }}</p>
+    <p><strong>Date & Time:</strong> {{ session.session_date|date:"M d, Y - h:i A" }}</p>
+    <p><strong>Status:</strong>
+        <span class="badge {{ session.status|lower }}">{{ session.status }}</span>
+    </p>
+    <p><strong>Approval:</strong>
+        <span class="badge {{ session.approval_status|lower }}">{{ session.approval_status }}</span>
+    </p>
+    <p><strong>Notes:</strong> {{ session.notes|default:"No notes yet." }}</p>
+
+    <div class="actions">
+        {% if session.approval_status == 'APPROVED' and session.status != 'CANCELLED' %}
+        <a href="{% url 'startup:update_session' session.id %}" class="btn btn-success">Edit</a>
+        {% endif %}
+        {% if session.status == 'SCHEDULED' %}
+        <a href="{% url 'startup:cancel_session' session.id %}" class="btn btn-danger">Cancel</a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .panel {
+        max-width: 600px;
+        margin: 30px auto;
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    p {
+        margin: 10px 0;
+        font-size: 1rem;
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85em;
+    }
+
+    /* Status badges */
+    .scheduled {
+        background-color: #d32f2f;
+        /* red */
+    }
+
+    .completed {
+        background-color: #388e3c;
+        /* green */
+    }
+
+    .cancelled {
+        background-color: #757575;
+        /* gray */
+    }
+
+    /* Approval badges */
+    .approved {
+        background-color: #388e3c;
+        /* green */
+    }
+
+    .pending {
+        background-color: #ffa000;
+        /* amber */
+    }
+
+    .rejected {
+        background-color: #d32f2f;
+        /* red */
+    }
+
+    .actions {
+        margin-top: 20px;
+    }
+
+    .btn-success,
+    .btn-danger {
+        padding: 10px 20px;
+        border-radius: 8px;
+        color: #fff;
+        text-decoration: none;
+        margin-right: 10px;
+        display: inline-block;
+        font-weight: 600;
+    }
+
+    .btn-success {
+        background: #388e3c;
+    }
+
+    .btn-success:hover {
+        background: #2e7d32;
+    }
+
+    .btn-danger {
+        background: #d32f2f;
+    }
+
+    .btn-danger:hover {
+        background: #c62828;
+    }
+    .main-content {
+        margin-left: 270px;
+        /* keep spacing for cards/charts from sidebar */
+        padding: 15px 30px 30px 30px;
+        /* less top padding */
+    }
+</style>
+{% endblock %}

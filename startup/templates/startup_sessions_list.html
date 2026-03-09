@@ -1,0 +1,187 @@
+{% extends 'base_startup.html' %}
+
+{% block content %}
+<div class="panel">
+    <div class="header">
+        <h2>My Mentorship Sessions</h2>
+        <a href="{% url 'startup:create_session' %}" class="btn btn-primary">
+            Request New Session
+        </a>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Mentor</th>
+                <th>Topic</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>Approval</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for session in sessions %}
+            <tr>
+                <td>{{ session.mentor.user.username }}</td>
+                <td>{{ session.topic }}</td>
+                <td>{{ session.session_date|date:"M d, Y - h:i A" }}</td>
+
+                <td>
+                    <span class="badge {{ session.status|lower }}">
+                        {{ session.status }}
+                    </span>
+                </td>
+
+                <td>
+                    <span class="badge {{ session.approval_status|lower }}">
+                        {{ session.approval_status }}
+                    </span>
+                </td>
+
+                <!-- ===== ACTIONS COLUMN ===== -->
+                <td>
+                    {% if session.status != 'COMPLETED' %}
+
+                        <a href="{% url 'startup:session_detail' session.id %}"
+                           class="action-link">
+                            View
+                        </a>
+
+                        {% if session.status != 'CANCELLED' %}
+                            |
+                            <a href="{% url 'startup:update_session' session.id %}"
+                               class="action-link">
+                                Edit
+                            </a>
+
+                            {% if session.approval_status == 'APPROVED' %}
+                                <span class="muted">(Re-approval required)</span>
+                            {% elif session.approval_status == 'PENDING' %}
+                                <span class="muted">(Awaiting approval)</span>
+                            {% elif session.approval_status == 'REJECTED' %}
+                                <span class="muted">(Rejected)</span>
+                            {% endif %}
+
+                            |
+                            <a href="{% url 'startup:cancel_session' session.id %}"
+                               class="action-link cancel">
+                                Cancel
+                            </a>
+                        {% endif %}
+
+                    {% else %}
+                        <span class="muted">No actions available</span>
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center;">
+                    No mentorship sessions found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ===== STYLES ===== -->
+<style>
+.panel {
+    max-width: 950px;
+    margin: 30px auto;
+    padding: 25px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+h2 {
+    color: #616161;
+    margin: 0;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    background: #d32f2f;
+    color: #fff;
+    padding: 10px;
+    text-align: left;
+}
+
+.table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* ===== BADGES ===== */
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85em;
+    text-transform: capitalize;
+}
+
+/* Status */
+.requested, .scheduled { background: #1976d2; }
+.completed { background: #388e3c; }
+.cancelled { background: #757575; }
+
+/* Approval */
+.approved { background: #388e3c; }
+.pending { background: #ffa000; }
+.rejected { background: #d32f2f; }
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+    background: #d32f2f;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    background: #b71c1c;
+}
+
+/* ===== ACTION LINKS ===== */
+.action-link {
+    color: #d32f2f;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.action-link:hover {
+    text-decoration: underline;
+}
+
+.cancel {
+    color: #b71c1c;
+}
+
+.muted {
+    color: #777;
+    font-size: 0.9em;
+    margin-left: 4px;
+}
+</style>
+
+{% endblock %}
