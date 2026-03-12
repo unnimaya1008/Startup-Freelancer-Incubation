@@ -37,86 +37,75 @@ class FreelancerProfile(models.Model):
     resume = models.FileField(blank=True, null=True)
     total_earnings = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # ── AI Verification Fields ──
+    github_url = models.URLField(blank=True, null=True, help_text="Link to your GitHub profile")
+    certificate = models.FileField(upload_to="freelancer/certificates/", blank=True, null=True, help_text="Upload your certificate (image or PDF)")
+
+    VERIFICATION_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('VERIFIED', 'Verified'),
+        ('SUSPICIOUS', 'Suspicious'),
+        ('UNVERIFIED', 'Unverified'),
+    ]
+    verification_status = models.CharField(max_length=20, choices=VERIFICATION_CHOICES, default='PENDING')
+    fraud_score = models.IntegerField(default=0, help_text="0 = trustworthy, 100 = likely fraudulent")
+    ai_verification_report = models.TextField(blank=True, null=True, help_text="AI-generated verification reasoning")
+    is_blocked = models.BooleanField(default=False)
+    blocked_reason = models.TextField(blank=True, null=True)
+    blocked_at = models.DateTimeField(blank=True, null=True)
+
+    @property
+    def get_average_ratings(self):
+        """Calculates and returns average ratings for the freelancer."""
+        ratings = self.ratings.all()
+        if not ratings.exists():
+            return {
+                'timeliness': 0,
+                'quality': 0,
+                'communication': 0,
+                'overall': 0,
+                'count': 0
+            }
+        
+        avg_timeliness = sum(r.timeliness_rating for r in ratings) / ratings.count()
+        avg_quality = sum(r.quality_rating for r in ratings) / ratings.count()
+        avg_communication = sum(r.communication_rating for r in ratings) / ratings.count()
+        overall = (avg_timeliness + avg_quality + avg_communication) / 3
+        
+        return {
+            'timeliness': round(avg_timeliness, 1),
+            'quality': round(avg_quality, 1),
+            'communication': round(avg_communication, 1),
+            'overall': round(overall, 1),
+            'count': ratings.count()
+        }
 
 # # ------------------------------------------------
 # # 2️⃣ SKILLS
 # # ------------------------------------------------
-# class Skill(models.Model):
-#     freelancer = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE, related_name='skills')
-#     name = models.CharField(max_length=100)
-#     proficiency = models.CharField(
-#         max_length=20,
-#         choices=[('BEGINNER', 'Beginner'), ('INTERMEDIATE', 'Intermediate'), ('EXPERT', 'Expert')],
-#         default='INTERMEDIATE'
-#     )
-#     image = models.ImageField(upload_to='skill_icons/', null=True, blank=True)  # ✅ New image field
+# 5️⃣ FREELANCER RATINGS
+# ------------------------------------------------
+class FreelancerRating(models.Model):
+    freelancer = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE, related_name='ratings')
+    startup = models.ForeignKey('startup.StartupProfile', on_delete=models.CASCADE, related_name='freelancer_ratings')
+    project = models.OneToOneField('projects.Project', on_delete=models.CASCADE, related_name='rating')
+    
+    timeliness_rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    quality_rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    communication_rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    
+    feedback = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-#     def __str__(self):
-#         return f"{self.name} ({self.proficiency})"
+    @property
+    def average_rating(self):
+        return round((self.timeliness_rating + self.quality_rating + self.communication_rating) / 3, 1)
 
-#     class Meta:
-#         unique_together = ('freelancer', 'name')
-#         ordering = ['name']
+    def __str__(self):
+        return f"{self.freelancer.full_name} - {self.project.name} Rating"
 
-
-# # ------------------------------------------------
-# # 3️⃣ CERTIFICATIONS
-# # ------------------------------------------------
-# class Certification(models.Model):
-#     freelancer = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE, related_name='certifications')
-#     title = models.CharField(max_length=150)
-#     issuer = models.CharField(max_length=150, blank=True, null=True)
-#     issue_date = models.DateField(blank=True, null=True)
-#     certificate_url = models.URLField(blank=True, null=True)
-#     certificate_file = models.FileField(upload_to='certificates/files/', blank=True, null=True)
-#     certificate_image = models.ImageField(upload_to='certificates/images/', blank=True, null=True)  # 🖼️ Added field
-
-
-#     def __str__(self):
-#         return f"{self.title} - {self.issuer or 'N/A'}"
-
-#     class Meta:
-#         ordering = ['-issue_date']
-
-
-# # ------------------------------------------------
-# # 4️⃣ PORTFOLIO ITEMS
-# # ------------------------------------------------
-# class PortfolioItem(models.Model):
-#     freelancer = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE, related_name='portfolio_items')
-#     title = models.CharField(max_length=200)
-#     description = models.TextField(blank=True, null=True)
-#     file = models.FileField(upload_to='portfolio_files/', blank=True, null=True)
-#     preview_image = models.ImageField(upload_to='portfolio_images/', blank=True, null=True)
-#     date_uploaded = models.DateTimeField(auto_now_add=True , null=True)
-#     live_link = models.URLField(blank=True, null=True)
-
-#     def __str__(self):
-#         return self.title
-
-#     class Meta:
-#         ordering = ['-date_uploaded']
-
-
-# # ------------------------------------------------
-# # 5️⃣ FREELANCER RATINGS (optional)
-# # ------------------------------------------------
-# class FreelancerRating(models.Model):
-#     freelancer = models.ForeignKey(FreelancerProfile, on_delete=models.CASCADE, related_name='ratings')
-#     startup = models.ForeignKey('startup.StartupProfile', on_delete=models.CASCADE, related_name='freelancer_ratings')
-#     project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name='freelancer_ratings')
-#     rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
-#     feedback = models.TextField(blank=True, null=True)
-#     created_at = models.DateTimeField(auto_now_add=True , null=True)
-
-#     def __str__(self):
-#         return f"{self.freelancer.full_name} - {self.rating}/5"
-
-#     class Meta:
-#         unique_together = ('freelancer', 'project')
-#         ordering = ['-created_at']
+    class Meta:
+        ordering = ['-created_at']
 
 
 # # ------------------------------------------------
@@ -160,6 +149,7 @@ class Milestone(models.Model):
         default='PENDING'
     )
     remarks = models.TextField(blank=True, null=True)
+    completed_date = models.DateField(null=True, blank=True)
     
     # auto_now is enough
     updated_at = models.DateTimeField(auto_now=True)

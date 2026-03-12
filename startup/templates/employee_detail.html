@@ -32,6 +32,8 @@
             <p><strong>Phone:</strong> {{ employee.phone_number|default:"N/A" }}</p>
             <p><strong>Date of Joining:</strong> {{ employee.date_of_joining|default:"N/A" }}</p>
             <p><strong>Currently Active:</strong> {{ employee.is_active|yesno:"Yes,No" }}</p>
+            <p><strong>Completed Projects:</strong> {{ completed_projects.count }}</p>
+            <p><strong>Average Rating:</strong> {{ avg_rating }}</p>
             <p><strong>LinkedIn:</strong>
                 {% if employee.linkedin_profile %}
                 <a href="{{ employee.linkedin_profile }}" target="_blank">{{ employee.linkedin_profile }}</a>
@@ -50,6 +52,38 @@
             <a href="{% url 'startup:delete_employee' employee.id %}" class="btn delete-btn"
                 onclick="return confirm('Are you sure you want to delete this employee?');">Delete</a>
         </div>
+    </div>
+</div>
+
+<div class="employee-card-wrapper">
+    <div class="employee-card">
+        <h3>Completed Projects</h3>
+        {% if completed_projects %}
+            <ul class="project-list">
+                {% for p in completed_projects %}
+                <li>
+                    <span>{{ p.name }}</span>
+                    <a class="btn rate-btn" href="{% url 'startup:rate_employee' employee.id p.id %}">Rate</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">No completed projects yet.</p>
+        {% endif %}
+
+        <h3>Ratings</h3>
+        {% if ratings %}
+            <ul class="rating-list">
+                {% for r in ratings %}
+                <li>
+                    <strong>{{ r.project.name }}</strong> — {{ r.average_rating }} / 5
+                    {% if r.feedback %}<div class="muted">{{ r.feedback }}</div>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">No ratings yet.</p>
+        {% endif %}
     </div>
 </div>
 
@@ -186,6 +220,28 @@
 
     .btn.delete-btn:hover {
         background: #e53935;
+    }
+
+    .project-list,
+    .rating-list {
+        margin: 10px 0 0;
+        padding-left: 18px;
+    }
+
+    .project-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 6px 0;
+    }
+
+    .btn.rate-btn {
+        background: #2ecc71;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
     }
 
     @media(max-width:900px) {

@@ -1,0 +1,113 @@
+{% extends 'base_freelancer.html' %}
+{% block title %}AI Verification Report - {{ profile.full_name }}{% endblock %}
+
+{% block content %}
+<section style="max-width: 860px; margin: 40px auto; padding: 0 20px;">
+
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #0f172a, #1e3a8a); color: white; padding: 28px 32px; border-radius: 16px 16px 0 0;">
+        <h2 style="margin: 0 0 6px 0; font-size: 1.5rem;">🤖 AI Verification Report</h2>
+        <p style="margin: 0; opacity: 0.8; font-size: 0.95rem;">{{ profile.full_name }} — {{ profile.user.email }}</p>
+    </div>
+
+    <!-- Status Summary Bar -->
+    <div style="background: #1e293b; padding: 18px 32px; display: flex; align-items: center; gap: 40px; flex-wrap: wrap;">
+        <div>
+            <span style="color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Status</span><br>
+            {% if profile.verification_status == 'VERIFIED' %}
+            <span style="color: #4ade80; font-size: 1.2rem; font-weight: 800;">✅ VERIFIED</span>
+            {% elif profile.verification_status == 'SUSPICIOUS' %}
+            <span style="color: #f87171; font-size: 1.2rem; font-weight: 800;">⚠️ SUSPICIOUS</span>
+            {% elif profile.verification_status == 'PENDING' %}
+            <span style="color: #fbbf24; font-size: 1.2rem; font-weight: 800;">🔄 PENDING</span>
+            {% else %}
+            <span style="color: #94a3b8; font-size: 1.2rem; font-weight: 800;">❓ UNVERIFIED</span>
+            {% endif %}
+        </div>
+        <div>
+            <span style="color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Fraud Score</span><br>
+            <span style="font-size: 2rem; font-weight: 900;
+                {% if profile.fraud_score >= 70 %}color: #f87171;
+                {% elif profile.fraud_score >= 40 %}color: #fbbf24;
+                {% else %}color: #4ade80;{% endif %}">
+                {{ profile.fraud_score }}<span style="font-size: 1rem; opacity: 0.6;">/100</span>
+            </span>
+        </div>
+        <div>
+            <span style="color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">GitHub</span><br>
+            {% if profile.github_url %}
+            <a href="{{ profile.github_url }}" target="_blank" style="color: #60a5fa;">{{ profile.github_url }}</a>
+            {% else %}
+            <span style="color: #64748b;">Not provided</span>
+            {% endif %}
+        </div>
+        <div>
+            <span style="color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Certificate</span><br>
+            {% if profile.certificate %}
+            <a href="{{ profile.certificate.url }}" target="_blank" style="color: #60a5fa;">📄 View File</a>
+            {% else %}
+            <span style="color: #64748b;">Not uploaded</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- AI Report Body -->
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-top: none; padding: 32px; border-radius: 0 0 16px 16px;">
+
+        <h3 style="color: #1e293b; margin-top: 0;">🧠 AI Analysis Report</h3>
+
+        {% if profile.ai_verification_report %}
+        <div style="background: #f8fafc; border-left: 4px solid #2563eb; padding: 20px 24px; border-radius: 0 8px 8px 0; white-space: pre-wrap; font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.7; color: #334155;">
+            {{ profile.ai_verification_report }}
+        </div>
+        {% else %}
+        <div style="background: #fef9c3; border: 1px solid #fde047; padding: 20px; border-radius: 8px; text-align: center; color: #854d0e;">
+            {% if profile.verification_status == 'PENDING' %}
+            <p style="margin: 0;">🔄 Verification is currently running in the background. Please refresh in a few seconds.</p>
+            {% else %}
+            <p style="margin: 0;">No AI report available yet.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Fraud Risk Meter -->
+        <h3 style="color: #1e293b; margin-top: 30px;">📊 Fraud Risk Meter</h3>
+        <div style="background: #f1f5f9; border-radius: 8px; height: 16px; overflow: hidden; margin-bottom: 8px;">
+            <div style="height: 100%; width: {{ profile.fraud_score }}%;
+                background: {% if profile.fraud_score >= 70 %}linear-gradient(90deg, #ef4444, #dc2626){% elif profile.fraud_score >= 40 %}linear-gradient(90deg, #f59e0b, #d97706){% else %}linear-gradient(90deg, #22c55e, #16a34a){% endif %};
+                border-radius: 8px; transition: width 0.5s;">
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #64748b;">
+            <span>0 — Trustworthy</span>
+            <span style="font-weight: 700;">Score: {{ profile.fraud_score }}/100</span>
+            <span>100 — Fraudulent</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="margin-top: 30px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="{% url 'freelancer:trigger_verification' profile_id=profile.id %}"
+               style="background: #2563eb; color: white; padding: 10px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                🔄 Re-run AI Verification
+            </a>
+            <a href="/admin/freelancer/freelancerprofile/{{ profile.id }}/change/"
+               style="background: #0f172a; color: white; padding: 10px 22px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                ⚙️ Edit in Admin
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div style="margin-top: 16px;">
+        {% for message in messages %}
+        <div style="background: {% if message.tags == 'success' %}#dcfce7{% else %}#fee2e2{% endif %};
+                    border-radius: 8px; padding: 12px 16px; font-size: 14px;
+                    color: {% if message.tags == 'success' %}#15803d{% else %}#b91c1c{% endif %};">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</section>
+{% endblock %}

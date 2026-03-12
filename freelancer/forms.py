@@ -39,12 +39,15 @@ class FreelancerProfileForm(forms.ModelForm):
             'availability',
             'profile_picture',
             'resume',
+            'github_url',
+            'certificate',
         ]
         widgets = {
             'domain': forms.TextInput(attrs={'placeholder': 'e.g., Web Development'}),
             'experience_years': forms.Select(),
             'bio': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Write a short bio...'}),
             'availability': forms.Select(),
+            'github_url': forms.URLInput(attrs={'placeholder': 'https://github.com/yourusername'}),
         }
 
 
@@ -125,10 +128,21 @@ class ProposalForm(forms.ModelForm):
 class MilestoneForm(forms.ModelForm):
     class Meta:
         model = Milestone
-        fields = ['title', 'description', 'due_date', 'progress', 'status', 'remarks']
+        fields = ['title', 'description', 'due_date', 'completed_date', 'progress', 'status', 'remarks']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'remarks': forms.Textarea(attrs={'rows': 2}),
             'due_date': forms.DateInput(attrs={'type': 'date'}),
+            'completed_date': forms.DateInput(attrs={'type': 'date'}),
+            'progress': forms.NumberInput(attrs={'min': 0, 'max': 100}),
+        }
+
+
+class MilestoneUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Milestone
+        fields = ['progress', 'remarks']
+        widgets = {
+            'remarks': forms.Textarea(attrs={'rows': 2}),
             'progress': forms.NumberInput(attrs={'min': 0, 'max': 100}),
         }

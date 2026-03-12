@@ -1,10 +1,36 @@
 from django import forms
-from accounts.models import CustomUser
-from .models import StartupProfile ,Employee
 from django.contrib.auth.forms import UserCreationForm
+from accounts.models import CustomUser
+from .models import StartupProfile, Employee
 from projects.models import Project
 from funding.models import FundingRound
 from mentors.models import MentorshipSession
+from freelancer.models import FreelancerProfile, FreelancerRating
+from .models import EmployeeRating
+
+
+class FreelancerRatingForm(forms.ModelForm):
+    class Meta:
+        model = FreelancerRating
+        fields = ['timeliness_rating', 'quality_rating', 'communication_rating', 'feedback']
+        widgets = {
+            'timeliness_rating': forms.Select(attrs={'class': 'form-select'}),
+            'quality_rating': forms.Select(attrs={'class': 'form-select'}),
+            'communication_rating': forms.Select(attrs={'class': 'form-select'}),
+            'feedback': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Write your feedback...'}),
+        }
+
+
+class EmployeeRatingForm(forms.ModelForm):
+    class Meta:
+        model = EmployeeRating
+        fields = ['timeliness_rating', 'quality_rating', 'communication_rating', 'feedback']
+        widgets = {
+            'timeliness_rating': forms.Select(attrs={'class': 'form-select'}),
+            'quality_rating': forms.Select(attrs={'class': 'form-select'}),
+            'communication_rating': forms.Select(attrs={'class': 'form-select'}),
+            'feedback': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Write your feedback...'}),
+        }
 
 class StartupSignupForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -128,4 +154,17 @@ class MentorshipSessionForm(forms.ModelForm):
         if disable_all:
             for field in self.fields.values():
                 field.widget.attrs['disabled'] = 'disabled'
+
+
+# -----------------------------
+# MILESTONE TODO LIST FORM
+# -----------------------------
+class MilestoneSetupForm(forms.Form):
+    milestones = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 6,
+            'placeholder': 'Enter one milestone per line'
+        }),
+        help_text="One milestone per line. Example: Design wireframes"
+    )
 

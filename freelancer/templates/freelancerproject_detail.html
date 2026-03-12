@@ -14,11 +14,11 @@
 
         <div class="header-actions">
             <span class="status-badge {{ project.status|lower }}">{{ project.get_status_display }}</span>
-            {% if project.assignment and project.assignment.freelancer %}
-                {% if project.assignment.freelancer == request.user.freelancer_profile %}
+            {% if project.assigned_freelancer %}
+                {% if project.assigned_freelancer == request.user.freelancer_profile %}
                     <span class="assigned-badge">Assigned to you</span>
                 {% else %}
-                    <span class="assigned-badge other">Assigned to {{ project.assignment.freelancer.full_name|default:project.assignment.freelancer.user.username }}</span>
+                    <span class="assigned-badge other">Assigned to {{ project.assigned_freelancer.user.username }}</span>
                 {% endif %}
             {% endif %}
         </div>
@@ -113,7 +113,7 @@
         <!-- --------------------------
              Assigned-to-you actions (when freelancer is the assignee)
              -------------------------- -->
-        {% if project.assignment and project.assignment.freelancer == request.user.freelancer_profile %}
+        {% if project.assigned_freelancer == request.user.freelancer_profile %}
         <div class="assigned-actions">
             <h4>Work actions</h4>
 
@@ -141,7 +141,7 @@
         {% if project.status == 'COMPLETED' %}
         <div class="info-row">
             <div class="completed-msg">🎉 This project is completed.</div>
-            {% if project.assignment and project.assignment.freelancer == request.user.freelancer_profile %}
+            {% if project.assigned_freelancer == request.user.freelancer_profile %}
             <p class="muted">Thank you — you completed this project.</p>
             {% endif %}
         </div>
@@ -164,6 +164,13 @@
 .project-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
 .project-header h2 { margin:0; color:#1976d2; font-size:1.8rem; }
 .project-header .muted { color:#6b7280; margin:4px 0 0 0; }
+
+/* Disable text selection for project details */
+.project-detail-section {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
 
 /* Badges */
 .status-badge { padding:6px 12px; border-radius:18px; font-weight:700; color:#fff; text-transform:uppercase; margin-left:8px; }

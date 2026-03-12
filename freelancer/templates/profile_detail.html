@@ -15,7 +15,17 @@
                 {% endif %}
             </div>
             <div class="profile-top-info">
-                <h2>{{ profile.full_name|default:request.user.get_full_name }}</h2>
+                <h2>{{ profile.full_name|default:request.user.get_full_name }}
+                    {% if profile.verification_status == 'VERIFIED' %}
+                    <span class="verify-badge verified">✅ Verified</span>
+                    {% elif profile.verification_status == 'SUSPICIOUS' %}
+                    <span class="verify-badge suspicious">⚠️ Suspicious</span>
+                    {% elif profile.verification_status == 'PENDING' %}
+                    <span class="verify-badge pending">🔄 Verification Pending</span>
+                    {% else %}
+                    <span class="verify-badge unverified">❓ Unverified</span>
+                    {% endif %}
+                </h2>
                 <p>{{ request.user.email }}</p>
                 <a href="{% url 'freelancer:freelancer_profile_edit' %}" class="btn-edit">✏️ Edit Profile</a>
             </div>
@@ -55,6 +65,89 @@
                 </div>
             </div>
 
+            <!-- GitHub -->
+            <div class="info-card">
+                <div class="card-header">🐙 GitHub Profile</div>
+                <div class="card-body">
+                    {% if profile.github_url %}
+                    <a href="{{ profile.github_url }}" target="_blank">{{ profile.github_url }}</a>
+                    {% else %}
+                    <p>Not provided</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- AI Verification Status -->
+            <div class="info-card">
+                <div class="card-header">🤖 AI Verification</div>
+                <div class="card-body">
+                    <p><strong>Status:</strong>
+                        {% if profile.verification_status == 'VERIFIED' %}
+                        <span style="color:#16a34a;font-weight:700;">✅ Verified</span>
+                        {% elif profile.verification_status == 'SUSPICIOUS' %}
+                        <span style="color:#dc2626;font-weight:700;">⚠️ Suspicious</span>
+                        {% elif profile.verification_status == 'PENDING' %}
+                        <span style="color:#d97706;font-weight:700;">🔄 Pending</span>
+                        {% else %}
+                        <span style="color:#6b7280;font-weight:700;">❓ Unverified</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Fraud Score:</strong> {{ profile.fraud_score }}/100
+                        <small style="color:#64748b;">(0 = trustworthy)</small>
+                    </p>
+                    {% if profile.certificate %}
+                    <p><a href="{{ profile.certificate.url }}" target="_blank">📄 View Certificate</a></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Ratings & Reviews -->
+            <div class="info-card wide-card">
+                <div class="card-header">⭐ Ratings & Reviews</div>
+                <div class="card-body">
+                    {% with ratings=profile.get_average_ratings %}
+                    {% if ratings.count > 0 %}
+                    <div class="rating-summary">
+                        <div class="overall-rating">
+                            <span class="big-rating">{{ ratings.overall }}</span>
+                            <span class="out-of">/ 5</span>
+                            <p>Based on {{ ratings.count }} reviews</p>
+                        </div>
+                        <div class="rating-details">
+                            <div class="rating-row">
+                                <span>Timeliness</span>
+                                <div class="progress-bar"><div class="progress" style="width: {% widthratio ratings.timeliness 5 100 %}%"></div></div>
+                                <span>{{ ratings.timeliness }}</span>
+                            </div>
+                            <div class="rating-row">
+                                <span>Quality</span>
+                                <div class="progress-bar"><div class="progress" style="width: {% widthratio ratings.quality 5 100 %}%"></div></div>
+                                <span>{{ ratings.quality }}</span>
+                            </div>
+                            <div class="rating-row">
+                                <span>Communication</span>
+                                <div class="progress-bar"><div class="progress" style="width: {% widthratio ratings.communication 5 100 %}%"></div></div>
+                                <span>{{ ratings.communication }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="recent-reviews">
+                        <h4>Recent Feedback</h4>
+                        {% for r in profile.ratings.all|slice:":3" %}
+                        <div class="review-item">
+                            <p class="review-meta"><strong>{{ r.startup.startup_name }}</strong> - {{ r.created_at|date:"M d, Y" }}</p>
+                            <p class="review-text">"{{ r.feedback }}"</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p>No ratings yet.</p>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
@@ -82,6 +175,22 @@
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
         gap: 20px;
     }
+
+    /* Verification Badges */
+    .verify-badge {
+        display: inline-block;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        vertical-align: middle;
+        margin-left: 8px;
+        letter-spacing: 0.3px;
+    }
+    .verify-badge.verified   { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .verify-badge.suspicious { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .verify-badge.pending    { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+    .verify-badge.unverified { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
     .profile-img-wrap {
         flex-shrink: 0;
@@ -173,12 +282,85 @@
         text-decoration: underline;
     }
 
-    @media(max-width:600px) {
-        .profile-top-card {
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
+    .info-card.wide-card {
+        grid-column: 1 / -1;
+    }
+
+    .rating-summary {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        margin-bottom: 20px;
+    }
+
+    .overall-rating {
+        text-align: center;
+    }
+
+    .big-rating {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #ffc107;
+    }
+
+    .out-of {
+        font-size: 1.2rem;
+        color: #888;
+    }
+
+    .rating-details {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .rating-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 0.9rem;
+    }
+
+    .rating-row span:first-child {
+        width: 100px;
+    }
+
+    .progress-bar {
+        flex-grow: 1;
+        height: 8px;
+        background: #eee;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress {
+        height: 100%;
+        background: #ffc107;
+    }
+
+    .recent-reviews h4 {
+        margin: 20px 0 10px 0;
+        color: #333;
+    }
+
+    .review-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-meta {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 3px;
+    }
+
+    .review-text {
+        font-style: italic;
     }
 </style>
 {% endblock %}

@@ -35,6 +35,7 @@ class Project(models.Model):
     def __str__(self):
         return f"{self.name} ({self.startup.startup_name})"
     
+    @property
     def assigned_freelancer(self):
         """Returns the assigned freelancer for this project, if any."""
         if hasattr(self, 'assignment') and self.assignment.freelancer:
@@ -54,6 +55,9 @@ class ProjectProposal(models.Model):
         ('REJECTED', 'Rejected')
     ], default='PENDING')
     rejection_note = models.TextField(blank=True, null=True)  # NEW: store rejection reason
+    ai_score = models.IntegerField(default=0, help_text="AI score for proposal quality (0-100)")
+    ai_report = models.TextField(blank=True, null=True)
+    rank_score = models.IntegerField(default=0, help_text="Combined ranking score for sorting proposals")
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

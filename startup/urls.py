@@ -30,6 +30,8 @@ urlpatterns = [
     path('proposals/<int:project_id>/', views.project_proposals_detail, name='project_proposals_detail'),
     path('proposals/<int:proposal_id>/approve/', views.approve_proposal, name='approve_proposal'),
     path('proposals/<int:proposal_id>/reject/', views.reject_proposal, name='reject_proposal'),
+    path('proposals/<int:proposal_id>/report/', views.report_freelancer, name='report_freelancer'),
+    path('projects/<int:project_id>/milestones/setup/', views.setup_milestones, name='setup_milestones'),
 
     # -----------------------------
     # Employee Assignment to Projects
@@ -44,6 +46,7 @@ urlpatterns = [
     path('employees/<int:employee_id>/', views.employee_detail, name='employee_detail'),
     path('employees/<int:employee_id>/update/', views.update_employee, name='update_employee'),
     path('employees/<int:employee_id>/delete/', views.delete_employee, name='delete_employee'),
+    path('employees/<int:employee_id>/rate/<int:project_id>/', views.rate_employee, name='rate_employee'),
 
     # -----------------------------
     # Notifications
@@ -51,6 +54,7 @@ urlpatterns = [
     path('notifications/', views.notifications_list, name='notifications_list'),
     path('notifications/<int:notification_id>/', views.notification_detail, name='notification_detail'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 
     # -----------------------------
     # Funding Rounds
@@ -73,5 +77,6 @@ urlpatterns = [
     # -----------------------------
     # Freelancer Projects / Proposals (for future use)
     # -----------------------------
+    path('projects/<int:project_id>/rate/', views.rate_freelancer, name='rate_freelancer'),
     path('freelancer/available-projects/', views.project_to_frelancer_list, name='available_projects_for_freelancer'),
 ]

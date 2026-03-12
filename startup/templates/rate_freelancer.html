@@ -1,0 +1,157 @@
+{% extends 'base_startup.html' %}
+{% load static %}
+
+{% block title %}Rate Freelancer - {{ freelancer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="rating-card">
+        <div class="breadcrumb">
+            <a href="{% url 'startup:project_detail' project.id %}">← Back to Project Details</a>
+        </div>
+
+        <h1>Rate Freelancer</h1>
+        <p class="subtitle">Provide feedback for <strong>{{ freelancer.full_name }}</strong> for the project <strong>{{ project.name }}</strong></p>
+
+        <form method="post" class="rating-form">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.timeliness_rating.id_for_label }}">Timeliness & Delivery</label>
+                    <p class="field-desc">Did the freelancer complete the task on the correct date?</p>
+                    {{ form.timeliness_rating }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.quality_rating.id_for_label }}">Project Quality</label>
+                    <p class="field-desc">How would you rate the quality of the final project?</p>
+                    {{ form.quality_rating }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.communication_rating.id_for_label }}">Communication & Updates</label>
+                    <p class="field-desc">How was the interaction and project reporting?</p>
+                    {{ form.communication_rating }}
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="{{ form.feedback.id_for_label }}">Detailed Feedback</label>
+                {{ form.feedback }}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Submit Rating</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .page-container {
+        padding: 50px 20px;
+        min-height: 100vh;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .rating-card {
+        background: #fff;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        width: 100%;
+    }
+
+    .breadcrumb a {
+        font-size: 0.95rem;
+        color: #007bff;
+        text-decoration: none;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
+
+    h1 {
+        font-size: 2rem;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #6c757d;
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+    }
+
+    .rating-form {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #34495e;
+    }
+
+    .field-desc {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin: 0;
+    }
+
+    .form-select, .form-control {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #dcdde1;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-select:focus, .form-control:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    .form-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 14px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-primary:active {
+        transform: scale(0.98);
+    }
+</style>
+{% endblock %}

@@ -40,10 +40,10 @@
                 <li>👔 {{ emp.name }}</li>
                 {% endfor %}
                 {% endif %}
-                {% if project.assignment and project.assignment.freelancer %}
-                <li>💼 {{ project.assignment.freelancer.user.username }}</li>
+                {% if project.assigned_freelancer %}
+                <li>💼 {{ project.assigned_freelancer.user.username }}</li>
                 {% endif %}
-                {% if not project.employees_assigned.exists and not project.assignment.freelancer %}
+                {% if not project.employees_assigned.exists and not project.assigned_freelancer %}
                 <li>No members assigned yet.</li>
                 {% endif %}
             </ul>

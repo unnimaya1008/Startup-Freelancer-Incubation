@@ -3,6 +3,8 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.contrib import messages
+from django.utils import timezone
+from django.urls import reverse
 
 from .forms import (
     StartupSignupForm,
@@ -10,15 +12,20 @@ from .forms import (
     ProjectForm,
     EmployeeForm,
     FundingForm,
-    MentorshipSessionForm
+    MentorshipSessionForm,
+    FreelancerRatingForm,
+    EmployeeRatingForm,
+    MilestoneSetupForm
 )
 from accounts.supabase_helper import upload_to_supabase
 from accounts.models import Notification
+from projects.models import Project
 from projects.models import Project, ProjectProposal, ProjectAssignment
+from projects.proposal_ranker import trigger_proposal_rank_async
 from funding.models import FundingRound
-from .models import Employee
+from .models import Employee, FreelancerReport, EmployeeRating
 from mentors.models import MentorshipSession
-from freelancer.models import FreelancerProfile
+from freelancer.models import FreelancerProfile, Milestone
 from supabase import create_client
 from .helpers import *
 # -----------------------------
@@ -193,12 +200,16 @@ def create_project(request):
             # Assign employees
             employee_ids = request.POST.getlist('employees_assigned')
             project.employees_assigned.set(employee_ids)
-            for emp_id in employee_ids:
-                emp = Employee.objects.get(id=emp_id)
-                ProjectAssignment.objects.create(
+            # Assign primary employee if any
+            if employee_ids:
+                emp = Employee.objects.get(id=employee_ids[0])
+                ProjectAssignment.objects.update_or_create(
                     project=project,
-                    employee_name=emp.name,
-                    role=emp.role
+                    defaults={
+                        'employee_name': emp.name,
+                        'role': emp.role,
+                        'freelancer': None
+                    }
                 )
 
             # Notify freelancers if project is open
@@ -282,10 +293,61 @@ def project_proposals(request):
 @login_required
 def project_proposals_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id, startup=request.user.startup_profile)
-    proposals = project.proposals.all()
+    filter_key = request.GET.get('filter', 'best_match')
+
+    proposals = list(
+        project.proposals.select_related('freelancer', 'freelancer__user')
+    )
+
+    # Trigger AI ranking for proposals without a report or with prior missing-key errors
+    for p in proposals:
+        if (not p.ai_report and p.ai_score == 0 and p.rank_score == 0) or (
+            p.ai_report and "GEMINI_API_KEY not configured" in p.ai_report
+        ):
+            trigger_proposal_rank_async(p.id)
+
+    # Precompute rating and verification flags for sorting/filtering
+    for p in proposals:
+        rating_data = p.freelancer.get_average_ratings
+        p._rating_overall = rating_data.get('overall', 0)
+        p._verified = p.freelancer.verification_status == 'VERIFIED'
+
+    # Apply filters
+    exp_map = {
+        'exp_0_1': '0-1',
+        'exp_1_3': '1-3',
+        'exp_3_5': '3-5',
+        'exp_5_plus': '5+',
+    }
+    if filter_key in exp_map:
+        desired = exp_map[filter_key]
+        proposals = [p for p in proposals if p.freelancer.experience_years == desired]
+    elif filter_key == 'verified':
+        proposals = [p for p in proposals if p._verified]
+
+    # Apply sorting
+    if filter_key == 'rating':
+        proposals.sort(key=lambda p: (p._rating_overall, p.rank_score, p.ai_score), reverse=True)
+    else:
+        proposals.sort(
+            key=lambda p: (p._verified, p._rating_overall, p.rank_score, p.ai_score, p.submitted_at),
+            reverse=True
+        )
+
+    # Determine best match
+    best_match_id = None
+    for p in proposals:
+        if p._verified and p._rating_overall >= 4.0:
+            best_match_id = p.id
+            break
+    if best_match_id is None and proposals:
+        best_match_id = proposals[0].id
+
     return render(request, 'project_proposals_detail.html', {
         'project': project,
-        'proposals': proposals
+        'proposals': proposals,
+        'filter_key': filter_key,
+        'best_match_id': best_match_id
     })
 
 
@@ -300,8 +362,13 @@ from django.http import JsonResponse
 @login_required
 def approve_proposal(request, proposal_id):
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        if not hasattr(request.user, 'startup_profile'):
+            return JsonResponse({'success': False, 'message': 'Access denied.'})
+
         proposal = get_object_or_404(ProjectProposal, id=proposal_id)
         project = proposal.project
+        if project.startup_id != request.user.startup_profile.id:
+            return JsonResponse({'success': False, 'message': 'Access denied.'})
 
         # Prevent multiple approvals
         if ProjectAssignment.objects.filter(project=project, freelancer__isnull=False).exists():
@@ -317,10 +384,10 @@ def approve_proposal(request, proposal_id):
         # Reject other proposals automatically
         ProjectProposal.objects.filter(project=project).exclude(id=proposal.id).update(status='REJECTED')
 
-        # Create assignment
-        ProjectAssignment.objects.create(
+        # Create or update assignment
+        ProjectAssignment.objects.update_or_create(
             project=project,
-            freelancer=proposal.freelancer
+            defaults={'freelancer': proposal.freelancer, 'employee_name': None, 'role': None}
         )
 
         # Update project status
@@ -334,7 +401,12 @@ def approve_proposal(request, proposal_id):
             message=f"Your proposal for project '{project.name}' has been approved."
         )
 
-        return JsonResponse({'success': True, 'message': 'Proposal approved', 'proposal_id': proposal.id})
+        return JsonResponse({
+            'success': True,
+            'message': 'Proposal approved',
+            'proposal_id': proposal.id,
+            'redirect_url': reverse('startup:setup_milestones', args=[project.id])
+        })
 
     return JsonResponse({'success': False, 'message': 'Invalid request'})
 
@@ -343,7 +415,12 @@ def approve_proposal(request, proposal_id):
 @login_required
 def reject_proposal(request, proposal_id):
     if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        if not hasattr(request.user, 'startup_profile'):
+            return JsonResponse({'success': False, 'message': 'Access denied.'})
+
         proposal = get_object_or_404(ProjectProposal, id=proposal_id)
+        if proposal.project.startup_id != request.user.startup_profile.id:
+            return JsonResponse({'success': False, 'message': 'Access denied.'})
 
         if proposal.status != 'APPROVED':
             rejection_note = request.POST.get('rejection_note', '').strip()
@@ -362,6 +439,102 @@ def reject_proposal(request, proposal_id):
         return JsonResponse({'success': False, 'message': 'Cannot reject an approved proposal.'})
 
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+
+@login_required
+def report_freelancer(request, proposal_id):
+    if not hasattr(request.user, 'startup_profile'):
+        messages.error(request, "Access denied.")
+        return redirect('login')
+
+    proposal = get_object_or_404(ProjectProposal, id=proposal_id)
+    project = proposal.project
+    if project.startup_id != request.user.startup_profile.id:
+        messages.error(request, "Access denied.")
+        return redirect('startup:project_proposals_detail', project_id=project.id)
+
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if not reason:
+            messages.error(request, "Please provide a reason for the report.")
+            return redirect('startup:project_proposals_detail', project_id=project.id)
+
+        freelancer = proposal.freelancer
+        FreelancerReport.objects.create(
+            startup=request.user.startup_profile,
+            freelancer=freelancer,
+            project=project,
+            proposal=proposal,
+            reason=reason
+        )
+
+        freelancer.is_blocked = True
+        freelancer.blocked_reason = reason
+        freelancer.blocked_at = timezone.now()
+        freelancer.save(update_fields=['is_blocked', 'blocked_reason', 'blocked_at'])
+
+        Notification.objects.create(
+            user=freelancer.user,
+            title="Account blocked",
+            message="Your account has been blocked due to a report from a startup. Please contact support."
+        )
+
+        messages.success(request, "Freelancer reported and blocked from submitting new proposals.")
+    return redirect('startup:project_proposals_detail', project_id=project.id)
+
+
+# -----------------------------
+# Milestone Setup (Startup)
+# -----------------------------
+@login_required
+def setup_milestones(request, project_id):
+    if not hasattr(request.user, 'startup_profile'):
+        messages.error(request, "Access denied.")
+        return redirect('login')
+
+    project = get_object_or_404(Project, id=project_id, startup=request.user.startup_profile)
+    assignment = getattr(project, 'assignment', None)
+    if not assignment or not assignment.freelancer:
+        messages.error(request, "No freelancer assigned to this project yet.")
+        return redirect('startup:project_detail', project_id=project.id)
+
+    existing = Milestone.objects.filter(project=project, freelancer=assignment.freelancer).order_by('id')
+
+    if request.method == 'POST':
+        form = MilestoneSetupForm(request.POST)
+        if form.is_valid():
+            raw = form.cleaned_data['milestones']
+            lines = [line.strip() for line in raw.splitlines() if line.strip()]
+            if not lines:
+                messages.error(request, "Please add at least one milestone.")
+            else:
+                new_items = [
+                    Milestone(
+                        project=project,
+                        freelancer=assignment.freelancer,
+                        title=line,
+                        status='PENDING',
+                        progress=0
+                    )
+                    for line in lines
+                ]
+                Milestone.objects.bulk_create(new_items)
+                Notification.objects.create(
+                    user=assignment.freelancer.user,
+                    title=f"Milestones added for {project.name}",
+                    message="Your startup has added a milestone checklist. You can now mark them as you complete each item."
+                )
+                messages.success(request, "Milestones created successfully.")
+                return redirect('startup:project_detail', project_id=project.id)
+    else:
+        form = MilestoneSetupForm()
+
+    return render(request, 'setup_milestones.html', {
+        'form': form,
+        'project': project,
+        'existing_milestones': existing,
+        'profile': request.user.startup_profile
+    })
 
 
 
@@ -406,7 +579,22 @@ def update_employee(request, employee_id):
 @login_required
 def employee_detail(request, employee_id):
     employee = get_object_or_404(Employee, id=employee_id, startup=request.user.startup_profile)
-    return render(request, 'employee_detail.html', {'employee': employee , 'profile': request.user.startup_profile})
+    completed_projects = Project.objects.filter(
+        employees_assigned=employee,
+        status='COMPLETED'
+    )
+    ratings = EmployeeRating.objects.filter(employee=employee)
+    avg_rating = 0
+    if ratings.exists():
+        avg_rating = round(sum(r.average_rating for r in ratings) / ratings.count(), 1)
+
+    return render(request, 'employee_detail.html', {
+        'employee': employee,
+        'profile': request.user.startup_profile,
+        'completed_projects': completed_projects,
+        'ratings': ratings,
+        'avg_rating': avg_rating,
+    })
 
 @login_required
 def delete_employee(request, employee_id):
@@ -762,3 +950,125 @@ def project_to_frelancer_list(request):
     return render(request, 'freelancerpro_list.html', {'project': projects , 'profile': request.user.startup_profile})
 
 
+
+@login_required
+def rate_freelancer(request, project_id):
+    project = get_object_or_404(Project, id=project_id, startup=request.user.startup_profile)
+    
+    if project.status != 'COMPLETED':
+        messages.error(request, "You can only rate freelancers for completed projects.")
+        return redirect('startup:project_detail', project_id=project.id)
+    
+    if hasattr(project, 'rating'):
+        messages.warning(request, "You have already rated the freelancer for this project.")
+        return redirect('startup:project_detail', project_id=project.id)
+    
+    assignment = getattr(project, 'assignment', None)
+    if not assignment or not assignment.freelancer:
+        messages.error(request, "No freelancer was assigned to this project.")
+        return redirect('startup:project_detail', project_id=project.id)
+    
+    freelancer = assignment.freelancer
+    
+    if request.method == 'POST':
+        form = FreelancerRatingForm(request.POST)
+        if form.is_valid():
+            rating = form.save(commit=False)
+            rating.freelancer = freelancer
+            rating.startup = request.user.startup_profile
+            rating.project = project
+            rating.save()
+            messages.success(request, f"Successfully rated {freelancer.full_name}!")
+            return redirect('startup:project_detail', project_id=project.id)
+    else:
+        form = FreelancerRatingForm()
+    
+    return render(request, 'rate_freelancer.html', {
+        'form': form,
+        'project': project,
+        'freelancer': freelancer,
+        'profile': request.user.startup_profile
+    })
+
+
+@login_required
+def rate_employee(request, employee_id, project_id):
+    employee = get_object_or_404(Employee, id=employee_id, startup=request.user.startup_profile)
+    project = get_object_or_404(Project, id=project_id, startup=request.user.startup_profile)
+
+    if project.status != 'COMPLETED':
+        messages.error(request, "You can only rate an employee after project completion.")
+        return redirect('startup:employee_detail', employee_id=employee.id)
+
+    if not project.employees_assigned.filter(id=employee.id).exists():
+        messages.error(request, "This employee is not assigned to the selected project.")
+        return redirect('startup:employee_detail', employee_id=employee.id)
+
+    existing = EmployeeRating.objects.filter(employee=employee, project=project).first()
+    if request.method == 'POST':
+        form = EmployeeRatingForm(request.POST, instance=existing)
+        if form.is_valid():
+            rating = form.save(commit=False)
+            rating.startup = request.user.startup_profile
+            rating.employee = employee
+            rating.project = project
+            rating.save()
+            messages.success(request, "Employee rating saved.")
+            return redirect('startup:employee_detail', employee_id=employee.id)
+    else:
+        form = EmployeeRatingForm(instance=existing)
+
+    return render(request, 'rate_employee.html', {
+        'form': form,
+        'employee': employee,
+        'project': project,
+        'profile': request.user.startup_profile
+    })
+
+
+# -----------------------------
+# Notification helpers (side panel)
+# -----------------------------
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def mark_all_notifications_read(request):
+    """Called via AJAX when the notification panel is opened. Marks all unread as read."""
+    request.user.notifications.filter(read=False).update(read=True)
+    from django.http import JsonResponse
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+def notifications_list(request):
+    profile = request.user.startup_profile
+    notifications = request.user.notifications.all().order_by('-created_at')
+    request.user.notifications.filter(read=False).update(read=True)
+    return render(request, 'notifications_list.html', {
+        'profile': profile,
+        'notifications': notifications,
+        'notifications_count': 0,
+        'notifications_all': notifications,
+    })
+
+
+@login_required
+def notification_detail(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.read = True
+    notification.save()
+    return render(request, 'notification_detail.html', {
+        'notification': notification,
+        'profile': request.user.startup_profile,
+        'notifications_count': request.user.notifications.filter(read=False).count(),
+        'notifications': request.user.notifications.filter(read=False).order_by('-created_at')[:10],
+    })
+
+
+@login_required
+def mark_notification_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.read = True
+    notification.save()
+    return redirect(request.META.get('HTTP_REFERER', 'startup:startup_dashboard'))

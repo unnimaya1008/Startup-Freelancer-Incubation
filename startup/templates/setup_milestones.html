@@ -1,0 +1,93 @@
+{% extends 'base_startup.html' %}
+{% block title %}Setup Milestones{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <h2 class="page-title">Setup Milestones</h2>
+    <p class="muted">Project: <strong>{{ project.name }}</strong></p>
+
+    {% if existing_milestones %}
+    <div class="existing">
+        <h3>Existing milestones</h3>
+        <ul>
+            {% for m in existing_milestones %}
+            <li>{{ m.title }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="form-card">
+        <h3>Add a checklist</h3>
+        <p class="hint">Enter one milestone per line.</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="actions">
+                <button type="submit" class="btn-primary">Save milestones</button>
+                <a class="btn-outline" href="{% url 'startup:project_detail' project.id %}">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .page-container {
+        padding: 24px;
+        background: #f5f6fa;
+        min-height: 100vh;
+    }
+    .page-title {
+        font-size: 1.8rem;
+        margin-bottom: 6px;
+        color: #2c3e50;
+    }
+    .muted { color: #666; margin-bottom: 16px; }
+    .form-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        max-width: 720px;
+    }
+    .form-card textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+    }
+    .actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+    }
+    .btn-primary {
+        background: #3498db;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-outline {
+        border: 1px solid #3498db;
+        color: #3498db;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+    .existing {
+        margin-bottom: 16px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 12px 16px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        max-width: 720px;
+    }
+    .existing ul {
+        margin: 8px 0 0;
+        padding-left: 20px;
+    }
+    .hint { color: #777; margin-bottom: 10px; }
+</style>
+{% endblock %}

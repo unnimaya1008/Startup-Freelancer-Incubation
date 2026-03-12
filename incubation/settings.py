@@ -4,10 +4,14 @@ Django settings for incubation project.
 
 from pathlib import Path
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Gemini AI Key (used by freelancer/ai_verifier.py)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 SECRET_KEY = "a5seyy0=$j5kc)=^3juzq+i8_6*z%fwbdq)583d6wiq#=ew0)n"
 
@@ -68,6 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'startup.context_processors.notifications_context',
             ],
         },
     },

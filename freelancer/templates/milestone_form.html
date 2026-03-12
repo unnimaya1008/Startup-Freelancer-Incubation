@@ -1,19 +1,11 @@
 {% extends "base_freelancer.html" %}
-{% block title %}
-{% if create %}Create Milestone{% else %}Update Milestone{% endif %}
-{% endblock %}
+{% block title %}Update Milestone{% endblock %}
 
 {% block content %}
 <section class="form-wrapper">
 
     <div class="form-card">
-        <h2>
-            {% if create %}
-            ➕ Create Milestone
-            {% else %}
-            ✏️ Update Milestone
-            {% endif %}
-        </h2>
+        <h2>✏️ Update Milestone</h2>
 
         <p class="muted">
             Project: <strong>{{ project.name }}</strong>
@@ -24,9 +16,7 @@
             {{ form.as_p }}
 
             <div class="form-actions">
-                <button type="submit" class="btn-primary">
-                    {% if create %}Create{% else %}Update{% endif %}
-                </button>
+                <button type="submit" class="btn-primary">Update</button>
 
                 <a href="{% url 'freelancer:freelancer_milestones' project.id %}"
                    class="btn-outline">
@@ -94,3 +84,4 @@
 }
 </style>
 {% endblock %}
+

@@ -11,12 +11,15 @@ from django.utils import timezone
 from .forms import (
     FreelancerProfileForm,
     ProposalForm,
-    MilestoneForm
+    MilestoneForm,
+    MilestoneUpdateForm
 )
 from accounts.models import Notification
 from projects.models import Project, ProjectProposal
 from .models import FreelancerProfile
 from accounts.supabase_helper import upload_to_supabase
+from .ai_verifier import trigger_verification_async
+from projects.proposal_ranker import trigger_proposal_rank_async
 
 
 # ----------------------------------------
@@ -48,6 +51,9 @@ def freelancer_signup(request):
             profile = profile_form.save(commit=False)
             profile.user = user
             profile.save()
+
+            # 🤖 Trigger AI verification in the background (non-blocking)
+            trigger_verification_async(profile.id)
 
             login(request, user)
             return redirect('freelancer:freelancer_dashboard')
@@ -250,6 +256,9 @@ def project_detail(request, project_id):
 def submit_proposal(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     freelancer = request.user.freelancer_profile
+    if freelancer.is_blocked:
+        messages.error(request, "Your account is blocked from submitting proposals.")
+        return redirect('freelancer:freelancer_dashboard')
 
     previous_proposal = ProjectProposal.objects.filter(project=project, freelancer=freelancer).first()
 
@@ -267,6 +276,7 @@ def submit_proposal(request, project_id):
             proposal.status = 'PENDING'
             proposal.rejection_note = None  # Clear old rejection note
             proposal.save()
+            trigger_proposal_rank_async(proposal.id)
 
             messages.success(request, "Proposal submitted successfully.")
             return redirect('freelancer:freelancer_proposals')
@@ -317,29 +327,6 @@ def assigned_projects(request):
     return render(request, 'assigned_projects.html', {
         'projects': projects
     })
-
-@login_required
-@role_required('FREELANCER')
-def project_milestones(request, project_id):
-    project = get_object_or_404(Project, id=project_id, assigned_freelancer=request.user.freelancer_profile)
-    milestones = ProjectMilestone.objects.filter(project=project)
-    return render(request, 'freelancer/project_milestones.html', {'project': project, 'milestones': milestones})
-
-
-@login_required
-@role_required('FREELANCER')
-def update_milestone(request, milestone_id):
-    milestone = get_object_or_404(ProjectMilestone, id=milestone_id, project__assigned_freelancer=request.user.freelancer_profile)
-    if request.method == 'POST':
-        form = MilestoneUpdateForm(request.POST, request.FILES, instance=milestone)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Milestone updated successfully.")
-            return redirect('project_milestones', project_id=milestone.project.id)
-    else:
-        form = MilestoneUpdateForm(instance=milestone)
-    return render(request, 'freelancer/update_milestone.html', {'form': form, 'milestone': milestone})
-
 
 # ----------------------------------------
 # 5️⃣ Skills & Certifications
@@ -536,7 +523,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
 from .models import Milestone, FreelancerProfile
-from .forms import MilestoneForm
 from projects.models import Project
 from accounts.models import Notification
 
@@ -577,47 +563,8 @@ def milestone_list(request, project_id):
 @login_required
 @role_required('FREELANCER')
 def create_milestone(request, project_id):
-    freelancer = request.user.freelancer_profile
-
-    project = get_object_or_404(
-        Project,
-        id=project_id,
-        assignment__freelancer=freelancer,
-        assignment__is_active=True
-    )
-
-    if project.status == 'COMPLETED':
-        messages.error(request, "Cannot add milestones to a completed project.")
-        return redirect('freelancer:freelancer_milestones', project_id=project.id)
-
-    if request.method == 'POST':
-        form = MilestoneForm(request.POST)
-        if form.is_valid():
-            milestone = form.save(commit=False)
-            milestone.project = project
-            milestone.freelancer = freelancer
-            milestone.save()
-
-            Notification.objects.create(
-                user=project.startup.user,
-                title="New Milestone Added",
-                message=f"{freelancer.full_name} added milestone '{milestone.title}' for project '{project.name}'."
-            )
-
-            messages.success(request, "Milestone created successfully.")
-            return redirect('freelancer:freelancer_milestones', project_id=project.id)
-    else:
-        form = MilestoneForm()
-
-    return render(
-        request,
-        'milestone_form.html',
-        {
-            'form': form,
-            'project': project,
-            'create': True
-        }
-    )
+    messages.error(request, "Startups now create the milestone checklist. You can only update progress.")
+    return redirect('freelancer:freelancer_assigned_projects')
 
 
 # ----------------------------------------
@@ -642,7 +589,7 @@ def update_milestone(request, milestone_id):
         return redirect('freelancer:freelancer_milestones', project_id=project.id)
 
     if request.method == 'POST':
-        form = MilestoneForm(request.POST, instance=milestone)
+        form = MilestoneUpdateForm(request.POST, instance=milestone)
         if form.is_valid():
             updated = form.save(commit=False)
 
@@ -650,11 +597,13 @@ def update_milestone(request, milestone_id):
             if updated.progress >= 100:
                 updated.progress = 100
                 updated.status = 'COMPLETED'
+                if not updated.completed_date:
+                    updated.completed_date = timezone.now().date()
 
                 Notification.objects.create(
                     user=project.startup.user,
                     title="Milestone Completed",
-                    message=f"{freelancer.full_name} completed milestone '{updated.title}'."
+                    message=f"{freelancer.full_name} completed milestone '{updated.title}' for project '{project.name}'.\nRemarks: {updated.remarks}\nCompleted Date: {updated.completed_date}"
                 )
             elif updated.progress > 0:
                 updated.status = 'IN_PROGRESS'
@@ -665,7 +614,7 @@ def update_milestone(request, milestone_id):
             messages.success(request, "Milestone updated successfully.")
             return redirect('freelancer:freelancer_milestones', project_id=project.id)
     else:
-        form = MilestoneForm(instance=milestone)
+        form = MilestoneUpdateForm(instance=milestone)
 
     return render(
         request,
@@ -729,4 +678,31 @@ def complete_project(request, project_id):
     return redirect('freelancer:freelancer_assigned_projects')
 
 
+# ----------------------------------------
+# AI Verification Views
+# ----------------------------------------
 
+@login_required
+def trigger_verification(request, profile_id):
+    """Admin can re-trigger AI verification for a freelancer."""
+    if not (request.user.is_staff or request.user.role == 'ADMIN'):
+        messages.error(request, "Access denied.")
+        return redirect('freelancer:freelancer_dashboard')
+
+    profile = get_object_or_404(FreelancerProfile, pk=profile_id)
+    profile.verification_status = 'PENDING'
+    profile.save(update_fields=['verification_status'])
+    trigger_verification_async(profile.id)
+    messages.success(request, f"AI verification re-triggered for {profile.full_name}.")
+    return redirect('freelancer:verification_report', profile_id=profile_id)
+
+
+@login_required
+def verification_report(request, profile_id):
+    """View the AI verification report for a freelancer (admin only)."""
+    if not (request.user.is_staff or request.user.role == 'ADMIN'):
+        messages.error(request, "Access denied.")
+        return redirect('freelancer:freelancer_dashboard')
+
+    profile = get_object_or_404(FreelancerProfile, pk=profile_id)
+    return render(request, 'verification_report.html', {'profile': profile})

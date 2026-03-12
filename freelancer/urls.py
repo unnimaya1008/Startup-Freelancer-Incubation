@@ -53,8 +53,6 @@ urlpatterns = [
     # -----------------------------
     path("projects/<int:project_id>/milestones/", views.milestone_list, name="freelancer_milestones"),
     path("milestones/<int:milestone_id>/update/", views.update_milestone, name="freelancer_update_milestone"),
-    path("milestones/<int:milestone_id>/delete/", views.delete_milestone, name="freelancer_delete_milestone"),
-    path("projects/<int:project_id>/milestones/create/", views.create_milestone, name="freelancer_create_milestone"),
 
     # -----------------------------
     # 7️⃣ Notifications
@@ -68,5 +66,11 @@ urlpatterns = [
     # path("earnings/", views.freelancer_earnings, name="freelancer_earnings"),
     
     path('project/<int:project_id>/complete/', views.complete_project, name='complete_project'),
+
+    # -----------------------------
+    # 9️⃣ AI Verification (Admin)
+    # -----------------------------
+    path('verify/<int:profile_id>/', views.trigger_verification, name='trigger_verification'),
+    path('verify/<int:profile_id>/report/', views.verification_report, name='verification_report'),
 
 ]

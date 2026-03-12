@@ -31,3 +31,38 @@ class Employee(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.startup.startup_name})"
+
+
+class FreelancerReport(models.Model):
+    startup = models.ForeignKey(StartupProfile, on_delete=models.CASCADE, related_name="freelancer_reports")
+    freelancer = models.ForeignKey('freelancer.FreelancerProfile', on_delete=models.CASCADE, related_name="reports")
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name="freelancer_reports")
+    proposal = models.ForeignKey('projects.ProjectProposal', on_delete=models.CASCADE, related_name="freelancer_reports")
+    reason = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.startup.startup_name} reported {self.freelancer.full_name}"
+
+
+class EmployeeRating(models.Model):
+    startup = models.ForeignKey(StartupProfile, on_delete=models.CASCADE, related_name="employee_ratings")
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="ratings")
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name="employee_ratings")
+
+    timeliness_rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    quality_rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    communication_rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)], default=5)
+    feedback = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def average_rating(self):
+        return round((self.timeliness_rating + self.quality_rating + self.communication_rating) / 3, 1)
+
+    class Meta:
+        unique_together = ('employee', 'project')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.employee.name} - {self.project.name} Rating"
