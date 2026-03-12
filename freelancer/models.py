@@ -53,6 +53,8 @@ class FreelancerProfile(models.Model):
     is_blocked = models.BooleanField(default=False)
     blocked_reason = models.TextField(blank=True, null=True)
     blocked_at = models.DateTimeField(blank=True, null=True)
+    block_count = models.IntegerField(default=0)
+    permanently_removed = models.BooleanField(default=False)
 
     @property
     def get_average_ratings(self):

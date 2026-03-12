@@ -471,15 +471,35 @@ def report_freelancer(request, proposal_id):
         freelancer.is_blocked = True
         freelancer.blocked_reason = reason
         freelancer.blocked_at = timezone.now()
-        freelancer.save(update_fields=['is_blocked', 'blocked_reason', 'blocked_at'])
+        freelancer.block_count = (freelancer.block_count or 0) + 1
+        # Permanent removal after 3 blocks
+        if freelancer.block_count >= 3:
+            freelancer.permanently_removed = True
+            freelancer.user.is_active = False
+            freelancer.user.save(update_fields=['is_active'])
+        freelancer.save(update_fields=[
+            'is_blocked',
+            'blocked_reason',
+            'blocked_at',
+            'block_count',
+            'permanently_removed',
+        ])
 
         Notification.objects.create(
             user=freelancer.user,
             title="Account blocked",
-            message="Your account has been blocked due to a report from a startup. Please contact support."
+            message=(
+                "Your account has been blocked due to a report from a startup. "
+                "Please contact support."
+                if not freelancer.permanently_removed else
+                "Your account has been permanently removed due to repeated reports."
+            )
         )
 
-        messages.success(request, "Freelancer reported and blocked from submitting new proposals.")
+        if freelancer.permanently_removed:
+            messages.success(request, "Freelancer reported and permanently removed.")
+        else:
+            messages.success(request, "Freelancer reported and blocked from submitting new proposals.")
     return redirect('startup:project_proposals_detail', project_id=project.id)
 
 

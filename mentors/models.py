@@ -35,15 +35,17 @@ class MentorshipSession(models.Model):
     )
 
     status = models.CharField(
-    max_length=20,
-    choices=[
-        ('REQUESTED', 'Requested'),   # <-- new option
-        ('SCHEDULED', 'Scheduled'),
-        ('COMPLETED', 'Completed'),
-        ('CANCELLED', 'Cancelled'),
-    ],
-    default='REQUESTED'
-)
+        max_length=20,
+        choices=[
+            ('REQUESTED', 'Requested'),
+            ('SCHEDULED', 'Scheduled'),
+            ('COMPLETED', 'Completed'),
+            ('CANCELLED', 'Cancelled'),
+        ],
+        default='REQUESTED'
+    )
+    meet_link = models.URLField(blank=True, null=True)
+    calendar_event_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"{self.startup.startup_name} → {self.mentor.user.username} ({self.topic})"

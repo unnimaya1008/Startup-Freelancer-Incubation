@@ -5,6 +5,15 @@ from django.views import View
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden
+import secrets
+
+
+def _create_jitsi_link(session: MentorshipSession) -> str:
+    """
+    Create a Jitsi Meet link without any API calls.
+    """
+    slug = f"mentorship-{session.id}-{secrets.token_hex(4)}"
+    return f"https://meet.jit.si/{slug}"
 
 class MentorSignupView(View):
     def get(self, request):
@@ -65,6 +74,12 @@ class MentorshipSessionApproveView(LoginRequiredMixin, View):
             return HttpResponseForbidden("Not allowed")
         session.approval_status = 'APPROVED'
         session.status = 'SCHEDULED'
+        if not session.meet_link:
+            try:
+                session.meet_link = _create_jitsi_link(session)
+            except Exception:
+                # If Meet creation fails, still approve the session
+                pass
         session.save()
         return redirect('mentors:mentorship_sessions')
 

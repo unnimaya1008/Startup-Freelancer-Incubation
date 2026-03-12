@@ -50,6 +50,9 @@ def freelancer_signup(request):
 
             profile = profile_form.save(commit=False)
             profile.user = user
+            if not profile.full_name:
+                full_name = f"{user.first_name} {user.last_name}".strip()
+                profile.full_name = full_name or user.username
             profile.save()
 
             # 🤖 Trigger AI verification in the background (non-blocking)
@@ -256,6 +259,9 @@ def project_detail(request, project_id):
 def submit_proposal(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     freelancer = request.user.freelancer_profile
+    if freelancer.permanently_removed:
+        messages.error(request, "Your account has been permanently removed.")
+        return redirect('login')
     if freelancer.is_blocked:
         messages.error(request, "Your account is blocked from submitting proposals.")
         return redirect('freelancer:freelancer_dashboard')

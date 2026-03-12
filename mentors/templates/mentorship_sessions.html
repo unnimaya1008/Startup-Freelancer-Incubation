@@ -119,6 +119,7 @@
           <th>Date</th>
           <th>Approval</th>
           <th>Status</th>
+          <th>Meet</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -167,6 +168,15 @@
               <span class="badge">{{ s.status }}</span>
             {% endif %}
             <span class="mobile"><div class="muted-small">Status</div></span>
+          </td>
+
+          <td class="meet">
+            {% if s.meet_link %}
+              <a href="{{ s.meet_link }}" target="_blank">Join</a>
+            {% else %}
+              <span class="muted-small">Not created</span>
+            {% endif %}
+            <span class="mobile"><div class="muted-small">Meet</div></span>
           </td>
 
           <td class="actions-col">

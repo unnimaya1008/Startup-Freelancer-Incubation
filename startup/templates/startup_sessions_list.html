@@ -17,6 +17,7 @@
                 <th>Date & Time</th>
                 <th>Status</th>
                 <th>Approval</th>
+                <th>Meet</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -38,6 +39,14 @@
                     <span class="badge {{ session.approval_status|lower }}">
                         {{ session.approval_status }}
                     </span>
+                </td>
+
+                <td>
+                    {% if session.meet_link %}
+                        <a href="{{ session.meet_link }}" target="_blank">Join</a>
+                    {% else %}
+                        <span class="muted">Not created</span>
+                    {% endif %}
                 </td>
 
                 <!-- ===== ACTIONS COLUMN ===== -->
