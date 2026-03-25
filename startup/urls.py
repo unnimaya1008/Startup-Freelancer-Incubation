@@ -57,15 +57,6 @@ urlpatterns = [
     path('notifications/mark-all-read/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
 
     # -----------------------------
-    # Funding Rounds
-    # -----------------------------
-    # path('funding/', views.funding_list, name='funding_list'),
-    # path('funding/create/', views.create_funding, name='create_funding'),
-    # path('funding/<int:funding_id>/', views.funding_detail, name='funding_detail'),
-    # path('funding/<int:funding_id>/update/', views.update_funding, name='update_funding'),
-    # path('funding/<int:funding_id>/delete/', views.delete_funding, name='delete_funding'),
-
-    # -----------------------------
     # Mentorship Sessions
     # -----------------------------
     path('sessions/', views.startup_sessions, name='startup_sessions'),
@@ -73,6 +64,7 @@ urlpatterns = [
     path('sessions/<int:session_id>/', views.session_detail, name='session_detail'),
     path('sessions/<int:session_id>/update/', views.update_session, name='update_session'),
     path('sessions/<int:session_id>/cancel/', views.cancel_session, name='cancel_session'),
+    path('sessions/<int:session_id>/rate/', views.rate_mentor, name='rate_mentor'),
 
     # -----------------------------
     # Freelancer Projects / Proposals (for future use)

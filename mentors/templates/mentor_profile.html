@@ -106,6 +106,20 @@
     margin-top: 4px;
   }
 
+  .verify-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    text-transform: uppercase;
+  }
+  .verify-badge.verified { background: #2ecc71; }
+  .verify-badge.unverified { background: #95a5a6; }
+  .verify-badge.pending { background: #f39c12; }
+  .verify-badge.suspicious { background: #e74c3c; }
+
   .section-title {
     font-weight: 700;
     margin-top: 20px;
@@ -184,6 +198,15 @@
         <div class="meta-label">Total Sessions</div>
         <div class="meta-value">{{ sessions|length }}</div>
       </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Verification</div>
+        <div class="meta-value">
+          <span class="verify-badge {{ mentor_profile.verification_status|lower }}">
+            {{ mentor_profile.get_verification_status_display }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <!-- LINKEDIN -->
@@ -191,6 +214,16 @@
     {% if mentor_profile.linkedin_profile %}
       <a href="{{ mentor_profile.linkedin_profile }}" target="_blank">
         {{ mentor_profile.linkedin_profile }}
+      </a>
+    {% else %}
+      <div class="muted">Not provided</div>
+    {% endif %}
+
+    <!-- GITHUB -->
+    <div class="section-title">GitHub</div>
+    {% if mentor_profile.github_url %}
+      <a href="{{ mentor_profile.github_url }}" target="_blank">
+        {{ mentor_profile.github_url }}
       </a>
     {% else %}
       <div class="muted">Not provided</div>

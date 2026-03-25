@@ -81,7 +81,11 @@
                         {% endif %}
 
                     {% else %}
-                        <span class="muted">No actions available</span>
+                        {% if session.mentor_rating %}
+                            <span class="muted">Rated: {{ session.mentor_rating.average_rating }}/5</span>
+                        {% else %}
+                            <a href="{% url 'startup:rate_mentor' session.id %}" class="action-link">Rate Mentor</a>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>

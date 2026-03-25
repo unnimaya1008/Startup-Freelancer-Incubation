@@ -219,7 +219,9 @@ def available_projects(request):
     # ✅ Projects that are not assigned and still in PLANNED status
     projects = Project.objects.filter(
     assigned_to_freelancers=True,
-    status='PLANNED').exclude(proposals__freelancer=profile)
+    status='PLANNED',
+    domain=profile.domain
+    ).exclude(proposals__freelancer=profile)
 
 
     return render(request, 'available_projects.html', {
@@ -237,6 +239,9 @@ def available_projects(request):
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     freelancer = request.user.freelancer_profile
+    if project.domain != freelancer.domain:
+        messages.error(request, "This project is not in your domain.")
+        return redirect('freelancer:available_projects')
 
     # Check if the freelancer already applied
     existing_proposal = ProjectProposal.objects.filter(
@@ -259,6 +264,9 @@ def project_detail(request, project_id):
 def submit_proposal(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     freelancer = request.user.freelancer_profile
+    if project.domain != freelancer.domain:
+        messages.error(request, "You can only apply to projects in your domain.")
+        return redirect('freelancer:available_projects')
     if freelancer.permanently_removed:
         messages.error(request, "Your account has been permanently removed.")
         return redirect('login')

@@ -11,10 +11,10 @@ from .forms import (
     StartupProfileForm,
     ProjectForm,
     EmployeeForm,
-    FundingForm,
     MentorshipSessionForm,
     FreelancerRatingForm,
     EmployeeRatingForm,
+    MentorRatingForm,
     MilestoneSetupForm
 )
 from accounts.supabase_helper import upload_to_supabase
@@ -22,12 +22,12 @@ from accounts.models import Notification
 from projects.models import Project
 from projects.models import Project, ProjectProposal, ProjectAssignment
 from projects.proposal_ranker import trigger_proposal_rank_async
-from funding.models import FundingRound
 from .models import Employee, FreelancerReport, EmployeeRating
-from mentors.models import MentorshipSession
+from mentors.models import MentorshipSession, MentorProfile, MentorRating
 from freelancer.models import FreelancerProfile, Milestone
 from supabase import create_client
-from .helpers import *
+from django.db.models import Avg, FloatField, Value, IntegerField, Case, When
+from django.db.models.functions import Coalesce, Cast
 # -----------------------------
 # Helper Functions
 # -----------------------------
@@ -111,7 +111,6 @@ def startup_dashboard(request):
     profile = request.user.startup_profile
     projects = Project.objects.filter(startup=profile)
     proposals = ProjectProposal.objects.filter(project__startup=profile)
-    funding_qs = FundingRound.objects.filter(startup=profile)
     mentorship_qs = MentorshipSession.objects.filter(startup=profile)
 
     context = {
@@ -124,9 +123,6 @@ def startup_dashboard(request):
         'proposals_count': proposals.count(),
         'proposals_approved': proposals.filter(status='APPROVED').count(),
         'proposals_rejected': proposals.filter(status='REJECTED').count(),
-        'funding_count': funding_qs.count(),
-        'funding_approved': funding_qs.filter(status='APPROVED').count(),
-        'funding_rejected': funding_qs.filter(status='REJECTED').count(),
         'mentorship_count': mentorship_qs.filter(status='SCHEDULED').count(),
         'mentorship_completed': mentorship_qs.filter(status='COMPLETED').count(),
         'notifications_count': request.user.notifications.filter(read=False).count(),
@@ -141,7 +137,6 @@ def dashboard_data(request):
     profile = request.user.startup_profile
     projects = Project.objects.filter(startup=profile)
     proposals = ProjectProposal.objects.filter(project__startup=profile)
-    funding_qs = FundingRound.objects.filter(startup=profile)
     mentorship_qs = MentorshipSession.objects.filter(startup=profile)
 
     data = {
@@ -154,11 +149,6 @@ def dashboard_data(request):
             'submitted': proposals.count(),
             'approved': proposals.filter(status='APPROVED').count(),
             'rejected': proposals.filter(status='REJECTED').count(),
-        },
-        'funding': {
-            'requested': funding_qs.count(),
-            'approved': funding_qs.filter(status='APPROVED').count(),
-            'rejected': funding_qs.filter(status='REJECTED').count(),
         },
         'mentorship': {
             'scheduled': mentorship_qs.filter(status='SCHEDULED').count(),
@@ -648,150 +638,6 @@ def notification_detail(request, notification_id):
     return render(request, 'startup/notification_detail.html', {'notification': notification})
 
 # # -----------------------------
-# # 7️⃣ Funding
-# # -----------------------------
-# @login_required
-# def funding_list(request):
-#     rounds = FundingRound.objects.filter(startup=request.user.startup_profile)
-#     return render(request, 'funding_list.html', {'funding_rounds': rounds , 'profile': request.user.startup_profile})
-
-# from django.core.exceptions import ValidationError
-# @login_required
-# def create_funding(request):
-#     if request.method == 'POST':
-#         form = FundingForm(request.POST)
-#         if form.is_valid():
-#             funding = form.save(commit=False)
-#             funding.startup = request.user.startup_profile
-#             funding.status="REQUESTED"
-
-#             try:
-#                 # Model-level validation
-#                 funding.full_clean()
-#                 funding.save()
-#                 print(f"Funding round saved: ID={funding.id}, Round={funding.round_name}")
-
-#                 # ----- SEND NOTIFICATIONS -----
-#                 if funding.all_investors:
-#                     investors = InvestorProfile.objects.all()
-#                     print(f"Sending notifications to all investors ({investors.count()})")
-#                     for investor in investors:
-#                         try:
-#                             Notification.objects.create(
-#                                 user=investor.user,
-#                                 title="New Funding Round Available",
-#                                 message=f"{funding.startup.startup_name} created a funding round: "
-#                                         f"{funding.round_name} for ${funding.amount}"
-#                             )
-#                             print(f"Notification sent to {investor.user.username}")
-#                         except Exception as e:
-#                             print(f"Failed to send notification to {investor.user.username}: {e}")
-
-#                 elif funding.investor:
-#                     try:
-#                         Notification.objects.create(
-#                             user=funding.investor.user,
-#                             title="Funding Round Created",
-#                             message=f"{funding.startup.startup_name} created a funding round: "
-#                                     f"{funding.round_name} for ${funding.amount}"
-#                         )
-#                         print(f"Notification sent to {funding.investor.user.username}")
-#                     except Exception as e:
-#                         print(f"Failed to send notification to {funding.investor.user.username}: {e}")
-#                 else:
-#                     print("No investor selected and all_investors=False — no notifications sent")
-#                     messages.warning(request, 
-#                         "Funding saved, but no notifications were sent because no investor was selected."
-#                     )
-
-#                 messages.success(request, "Funding round created successfully!")
-#                 return redirect('startup:funding_list')
-
-#             except ValidationError as e:
-#                 form.add_error(None, e.message)
-#                 messages.error(request, "Validation error — please check your inputs.")
-#                 print("Validation error:", e)
-
-#             except Exception as e:
-#                 messages.error(request, "An unexpected error occurred.")
-#                 print("Unexpected error:", e)
-
-#         else:
-#             messages.error(request, "Please correct the errors below.")
-#             print("Form errors:", form.errors)
-
-#     else:
-#         form = FundingForm()
-
-#     return render(request, 'create_funding.html', {'form': form , 'profile': request.user.startup_profile})
-# @login_required
-# def update_funding(request, funding_id):
-#     funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
-
-#     # Restrict updates if already approved
-#     if funding.status == 'APPROVED':
-#         messages.error(request, "You cannot update an approved funding request.")
-#         return redirect('startup:funding_list')
-
-#     old_status = funding.status
-
-#     if request.method == 'POST':
-#         form = FundingForm(request.POST, instance=funding)
-#         if form.is_valid():
-#             updated_funding = form.save(commit=False)
-#             updated_funding.startup = request.user.startup_profile
-
-#             if old_status == 'REJECTED':
-#                 updated_funding.status = 'PENDING'
-#                 updated_funding.save()
-
-#                 # ✅ Log status change
-#                 funding.log_status_change(old_status, 'PENDING')
-
-#                 # Notify investor
-#                 Notification.objects.create(
-#                     user=updated_funding.investor.user,
-#                     title="Funding Request Resubmitted",
-#                     message=f"{updated_funding.startup.startup_name} has updated and resubmitted the funding request '{updated_funding.round_name}' for your review."
-#                 )
-
-#                 # Notify startup
-#                 Notification.objects.create(
-#                     user=request.user,
-#                     title="Funding Request Resent",
-#                     message=f"Your funding request '{updated_funding.round_name}' has been resent to {updated_funding.investor.user.username}."
-#                 )
-
-#             else:
-#                 updated_funding.save()
-#                 funding.log_status_change(old_status, updated_funding.status)
-
-#             messages.success(request, "Funding request updated successfully.")
-#             return redirect('startup:funding_list')
-#     else:
-#         form = FundingForm(instance=funding)
-
-#     return render(request, 'update_funding.html', {
-#         'form': form,
-#         'update': True,
-#         'funding': funding,
-#         'profile': request.user.startup_profile
-#     })
-
-
-# @login_required
-# def funding_detail(request, funding_id):
-#     funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
-#     return render(request, 'funding_detail.html', {'funding': funding , 'profile': request.user.startup_profile})
-
-# @login_required
-# def delete_funding(request, funding_id):
-#     funding = get_object_or_404(FundingRound, id=funding_id, startup=request.user.startup_profile)
-#     if request.method == 'POST':
-#         funding.delete()
-#         return redirect('startup:funding_list')
-#     return render(request, 'delete_funding_confirm.html', {'funding': funding , 'profile': request.user.startup_profile})
-
 # -----------------------------
 # 8️⃣ Mentorship
 # -----------------------------
@@ -815,8 +661,33 @@ def startup_sessions(request):
 # -----------------------------
 @login_required
 def create_session(request):
+    mentor_q = request.GET.get('q', '').strip()
+    mentor_qs = MentorProfile.objects.all()
+    if mentor_q:
+        mentor_qs = mentor_qs.filter(expertise_area__icontains=mentor_q)
+    mentor_qs = mentor_qs.annotate(
+        avg_comm=Coalesce(Avg('ratings__communication_rating'), Value(0.0, output_field=FloatField())),
+        avg_know=Coalesce(Avg('ratings__knowledge_delivery_rating'), Value(0.0, output_field=FloatField())),
+        avg_inter=Coalesce(Avg('ratings__interaction_rating'), Value(0.0, output_field=FloatField())),
+        avg_under=Coalesce(Avg('ratings__understanding_quality_rating'), Value(0.0, output_field=FloatField())),
+    ).annotate(
+        avg_rating=(
+            Cast(Coalesce(Avg('ratings__communication_rating'), 0), FloatField()) +
+            Cast(Coalesce(Avg('ratings__knowledge_delivery_rating'), 0), FloatField()) +
+            Cast(Coalesce(Avg('ratings__interaction_rating'), 0), FloatField()) +
+            Cast(Coalesce(Avg('ratings__understanding_quality_rating'), 0), FloatField())
+        ) / Value(4.0)
+    ).annotate(
+        verification_rank=Case(
+            When(verification_status='VERIFIED', then=Value(2)),
+            When(verification_status='SUSPICIOUS', then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField()
+        )
+    ).order_by('-verification_rank', '-avg_rating', '-experience_years')
+
     if request.method == 'POST':
-        form = MentorshipSessionForm(request.POST)
+        form = MentorshipSessionForm(request.POST, mentor_queryset=mentor_qs)
         if form.is_valid():
             session = form.save(commit=False)
             session.startup = request.user.startup_profile
@@ -840,8 +711,25 @@ def create_session(request):
             messages.success(request, "Session request sent and pending mentor approval.")
             return redirect('startup:startup_sessions')
     else:
-        form = MentorshipSessionForm()
-    return render(request, 'create_session.html', {'form': form , 'profile': request.user.startup_profile })
+        form = MentorshipSessionForm(mentor_queryset=mentor_qs)
+
+    mentor_info = {
+        str(m.id): {
+            "name": m.user.username,
+            "expertise": m.expertise_area,
+            "experience_years": m.experience_years,
+            "verification": m.get_verification_status_display(),
+            "avg_rating": round(getattr(m, 'avg_rating', 0) or 0, 1),
+        }
+        for m in mentor_qs
+    }
+
+    return render(request, 'create_session.html', {
+        'form': form,
+        'profile': request.user.startup_profile,
+        'mentor_q': mentor_q,
+        'mentor_info': mentor_info,
+    })
 
 
 # -----------------------------
@@ -1007,6 +895,34 @@ def rate_freelancer(request, project_id):
         'form': form,
         'project': project,
         'freelancer': freelancer,
+        'profile': request.user.startup_profile
+    })
+
+
+@login_required
+def rate_mentor(request, session_id):
+    session = get_object_or_404(MentorshipSession, id=session_id, startup=request.user.startup_profile)
+    if session.status != 'COMPLETED':
+        messages.error(request, "You can only rate a mentor after session completion.")
+        return redirect('startup:startup_sessions')
+
+    existing = MentorRating.objects.filter(session=session).first()
+    if request.method == 'POST':
+        form = MentorRatingForm(request.POST, instance=existing)
+        if form.is_valid():
+            rating = form.save(commit=False)
+            rating.startup = request.user.startup_profile
+            rating.mentor = session.mentor
+            rating.session = session
+            rating.save()
+            messages.success(request, "Mentor rating saved.")
+            return redirect('startup:startup_sessions')
+    else:
+        form = MentorRatingForm(instance=existing)
+
+    return render(request, 'rate_mentor.html', {
+        'form': form,
+        'session': session,
         'profile': request.user.startup_profile
     })
 

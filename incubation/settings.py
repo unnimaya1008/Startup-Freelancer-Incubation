@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'startup',
     'projects',
     'mentors',
-    'funding',
 ]
 
 

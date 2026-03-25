@@ -76,6 +76,20 @@ Overview of your mentoring activity and session requests
 
   .p-name { font-weight: 900; font-size: 16px; }
   .p-email { font-size: 13px; color: var(--muted-2); }
+  .verify-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .verify-badge.verified { background: #2ecc71; }
+  .verify-badge.unverified { background: #95a5a6; }
+  .verify-badge.pending { background: #f39c12; }
+  .verify-badge.suspicious { background: #e74c3c; }
 
   .profile-actions {
     display: flex;
@@ -240,6 +254,9 @@ Overview of your mentoring activity and session requests
             {{ mentor_profile.user.first_name|default:mentor_profile.user.username }}
           </div>
           <div class="p-email">{{ mentor_profile.user.email }}</div>
+          <div class="verify-badge {{ mentor_profile.verification_status|lower }}">
+            {{ mentor_profile.get_verification_status_display }}
+          </div>
         </div>
       </div>
 

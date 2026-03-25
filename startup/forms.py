@@ -3,8 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from accounts.models import CustomUser
 from .models import StartupProfile, Employee
 from projects.models import Project
-from funding.models import FundingRound
-from mentors.models import MentorshipSession
+from mentors.models import MentorshipSession, MentorRating
 from freelancer.models import FreelancerProfile, FreelancerRating
 from .models import EmployeeRating
 
@@ -107,35 +106,6 @@ class EmployeeForm(forms.ModelForm):
         
 
 # -----------------------------
-# FUNDING FORM
-# -----------------------------
-class FundingForm(forms.ModelForm):
-    all_investors = forms.BooleanField(
-        required=False,
-        label="Send to all investors",
-        help_text="Check to notify all investors instead of a specific one."
-    )
-
-    class Meta:
-        model = FundingRound
-        fields = ['round_name', 'amount', 'investor', 'all_investors']
-        widgets = {
-            'amount': forms.NumberInput(attrs={'step': '0.01'}),
-        }
-
-    def clean(self):
-        cleaned_data = super().clean()
-        investor = cleaned_data.get('investor')
-        all_investors = cleaned_data.get('all_investors')
-
-        if not all_investors and not investor:
-            raise forms.ValidationError("Select either a specific investor or 'all investors'.")
-        if all_investors and investor:
-            raise forms.ValidationError("Cannot select both a specific investor and 'all investors'.")
-        return cleaned_data
-
-
-# -----------------------------
 # MENTORSHIP FORM
 # -----------------------------
 class MentorshipSessionForm(forms.ModelForm):
@@ -150,10 +120,32 @@ class MentorshipSessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # Pop custom argument to disable all fields if needed
         disable_all = kwargs.pop('disable_all', False)
+        mentor_queryset = kwargs.pop('mentor_queryset', None)
         super().__init__(*args, **kwargs)
+        if mentor_queryset is not None:
+            self.fields['mentor'].queryset = mentor_queryset
         if disable_all:
             for field in self.fields.values():
                 field.widget.attrs['disabled'] = 'disabled'
+
+
+class MentorRatingForm(forms.ModelForm):
+    class Meta:
+        model = MentorRating
+        fields = [
+            'communication_rating',
+            'knowledge_delivery_rating',
+            'interaction_rating',
+            'understanding_quality_rating',
+            'feedback'
+        ]
+        widgets = {
+            'communication_rating': forms.Select(attrs={'class': 'form-select'}),
+            'knowledge_delivery_rating': forms.Select(attrs={'class': 'form-select'}),
+            'interaction_rating': forms.Select(attrs={'class': 'form-select'}),
+            'understanding_quality_rating': forms.Select(attrs={'class': 'form-select'}),
+            'feedback': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Write your feedback...'}),
+        }
 
 
 # -----------------------------

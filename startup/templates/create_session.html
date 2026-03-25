@@ -3,6 +3,39 @@
 {% block content %}
 <div class="panel">
     <h2>Request Mentorship Session</h2>
+    <form method="GET" style="margin-bottom:12px;">
+        <div class="form-group">
+            <label>Mentor Category / Expertise</label>
+            <input type="text" name="q" value="{{ mentor_q }}" placeholder="e.g. SaaS, Fintech, Growth">
+        </div>
+        <button type="submit" class="btn btn-danger">Search</button>
+    </form>
+
+    {% if mentor_q %}
+    <div class="mentor-results">
+        <div class="mentor-results-title">Available mentors in "{{ mentor_q }}"</div>
+        {% for mentor in form.fields.mentor.queryset %}
+            <button type="button"
+                    class="mentor-result-card"
+                    data-mentor-id="{{ mentor.id }}">
+                <div class="mentor-card-name">{{ mentor.user.username }}</div>
+                <div class="mentor-card-meta">
+                    <span>{{ mentor.expertise_area|default:"-" }}</span>
+                    <span>{{ mentor.experience_years|default:"0" }} yrs</span>
+                    <span class="badge {% if mentor.verification_status == 'VERIFIED' %}verified{% elif mentor.verification_status == 'SUSPICIOUS' %}suspicious{% else %}unverified{% endif %}">
+                        {{ mentor.get_verification_status_display }}
+                    </span>
+                    <span class="rating-pill">
+                        {{ mentor.avg_rating|floatformat:1 }} / 5
+                    </span>
+                </div>
+            </button>
+        {% empty %}
+            <div class="mentor-empty">No mentors found for this category.</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <form method="POST">
         {% csrf_token %}
 
@@ -26,13 +59,24 @@
             {{ form.notes }}
         </div>
 
-        <div class="form-group">
-            {{ form.status.label_tag }}
-            {{ form.status }}
-        </div>
-
         <button type="submit" class="btn btn-danger">Request</button>
     </form>
+</div>
+
+{{ mentor_info|json_script:"mentor-info-data" }}
+
+<div id="mentor-modal" class="mentor-modal" aria-hidden="true">
+    <div class="mentor-modal-content" role="dialog" aria-modal="true" aria-labelledby="mentor-modal-title">
+        <button type="button" class="mentor-modal-close" id="mentor-modal-close">Close</button>
+        <h3 id="mentor-modal-title">Mentor Details</h3>
+        <div class="mentor-modal-grid">
+            <div><strong>Name:</strong> <span id="mentor-name">-</span></div>
+            <div><strong>Expertise:</strong> <span id="mentor-expertise">-</span></div>
+            <div><strong>Experience:</strong> <span id="mentor-experience">-</span></div>
+            <div><strong>Verification:</strong> <span id="mentor-verification" class="badge">-</span></div>
+            <div><strong>Avg Rating:</strong> <span id="mentor-rating">-</span></div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -85,5 +129,195 @@
         padding: 15px 30px 30px 30px;
         /* less top padding */
     }
+
+    .mentor-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .mentor-modal.show {
+        display: flex;
+    }
+
+    .mentor-modal-content {
+        background: #fff;
+        width: min(520px, 92vw);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .mentor-modal-close {
+        float: right;
+        background: #eee;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px 10px;
+        cursor: pointer;
+    }
+
+    .mentor-modal-grid {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        background: #eee;
+    }
+
+    .badge.verified {
+        background: #e8f5e9;
+        color: #1b5e20;
+        border: 1px solid #a5d6a7;
+    }
+
+    .badge.unverified {
+        background: #fff3e0;
+        color: #e65100;
+        border: 1px solid #ffcc80;
+    }
+
+    .badge.suspicious {
+        background: #ffebee;
+        color: #b71c1c;
+        border: 1px solid #ef9a9a;
+    }
+
+    .mentor-results {
+        margin: 16px 0 20px 0;
+        display: grid;
+        gap: 10px;
+    }
+
+    .mentor-results-title {
+        font-weight: 700;
+        color: #333;
+    }
+
+    .mentor-result-card {
+        text-align: left;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px 14px;
+        cursor: pointer;
+        display: grid;
+        gap: 6px;
+    }
+
+    .mentor-result-card:hover {
+        border-color: #b71c1c;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .mentor-card-name {
+        font-weight: 700;
+    }
+
+    .mentor-card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        font-size: 0.92rem;
+        color: #555;
+    }
+
+    .rating-pill {
+        background: #eef2ff;
+        color: #1e3a8a;
+        border: 1px solid #c7d2fe;
+        border-radius: 10px;
+        padding: 2px 8px;
+    }
 </style>
+
+<script>
+    (function () {
+        const mentorInfoEl = document.getElementById('mentor-info-data');
+        if (!mentorInfoEl) return;
+
+        const mentorInfo = JSON.parse(mentorInfoEl.textContent || '{}');
+        const mentorSelect = document.getElementById('id_mentor');
+        const modal = document.getElementById('mentor-modal');
+        const closeBtn = document.getElementById('mentor-modal-close');
+
+        const nameEl = document.getElementById('mentor-name');
+        const expertiseEl = document.getElementById('mentor-expertise');
+        const experienceEl = document.getElementById('mentor-experience');
+        const verificationEl = document.getElementById('mentor-verification');
+        const ratingEl = document.getElementById('mentor-rating');
+
+        function openModal() {
+            modal.classList.add('show');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function setVerificationBadge(statusText) {
+            verificationEl.textContent = statusText || '-';
+            verificationEl.classList.remove('verified', 'unverified', 'suspicious');
+            const normalized = (statusText || '').toLowerCase();
+            if (normalized.includes('verified')) {
+                verificationEl.classList.add('verified');
+            } else if (normalized.includes('suspicious')) {
+                verificationEl.classList.add('suspicious');
+            } else {
+                verificationEl.classList.add('unverified');
+            }
+        }
+
+        function handleMentorChange() {
+            if (!mentorSelect) return;
+            const mentorId = mentorSelect.value;
+            if (!mentorId || !mentorInfo[mentorId]) return;
+
+            const info = mentorInfo[mentorId];
+            nameEl.textContent = info.name || '-';
+            expertiseEl.textContent = info.expertise || '-';
+            experienceEl.textContent = info.experience_years ? `${info.experience_years} years` : '-';
+            setVerificationBadge(info.verification);
+            ratingEl.textContent = info.avg_rating ? `${info.avg_rating} / 5` : 'No ratings yet';
+            openModal();
+        }
+
+        if (mentorSelect) {
+            mentorSelect.addEventListener('change', handleMentorChange);
+        }
+
+        document.querySelectorAll('.mentor-result-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                const mentorId = card.getAttribute('data-mentor-id');
+                if (!mentorId || !mentorSelect) return;
+                mentorSelect.value = mentorId;
+                handleMentorChange();
+            });
+        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+        if (modal) {
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) closeModal();
+            });
+        }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeModal();
+        });
+    })();
+</script>
 {% endblock %}

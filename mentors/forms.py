@@ -25,9 +25,17 @@ class MentorSignupForm(UserCreationForm):
 class MentorProfileForm(forms.ModelForm):
     class Meta:
         model = MentorProfile
-        fields = ('profile_image','expertise_area', 'experience_years', 'linkedin_profile')
+        fields = (
+            'profile_image',
+            'expertise_area',
+            'experience_years',
+            'linkedin_profile',
+            'github_url',
+            'certificate'
+        )
         widgets = {
             'expertise_area': forms.TextInput(attrs={'placeholder': 'e.g. SaaS, Fintech, Growth'}),
             'experience_years': forms.NumberInput(attrs={'min': 0}),
             'linkedin_profile': forms.URLInput(),
+            'github_url': forms.URLInput(attrs={'placeholder': 'https://github.com/yourusername'}),
         }

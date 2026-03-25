@@ -1,0 +1,84 @@
+﻿\documentclass[journal]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amsmath}
+
+\title{Startup \& Freelancer Incubation Management System}
+
+\author{Unnimaya M, Thejasree V P, Nikita Mary Jason, Nandana Bijulal%
+\thanks{Department of Computer Science and Engineering, Federal Institute of Science and Technology (FISAT), Academic Year 2025--26.}%
+\thanks{Project Guide: Remya R.}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper presents a Startup \& Freelancer Incubation Management System, a web platform that connects startups with freelancers and mentors, streamlines project posting and proposal workflows, supports mentorship sessions, and provides AI-assisted verification and proposal ranking. The system is built using Django with a modular, role-based architecture and focuses on improving collaboration quality, trust, and operational efficiency in incubation environments. We describe the requirements, architecture, data model, and key workflows, and discuss the system's impact and future enhancements.
+\end{abstract}
+
+\begin{IEEEkeywords}
+startup incubation, freelancer management, mentoring, Django, role-based access control, AI verification, proposal ranking
+\end{IEEEkeywords}
+
+\section{Introduction}
+Startup incubation environments often face friction in matching reliable talent with evolving project needs. Freelancers need visibility into suitable projects, while startups need mechanisms to evaluate proposals and ensure trust. Mentors add further value but require structured scheduling and feedback mechanisms. This project addresses these needs through a unified, role-based web platform that enables project management, proposal handling, mentorship sessions, and verification workflows.
+
+\section{Problem Statement}
+Existing incubation workflows are fragmented, leading to delays in project initiation, inconsistent proposal evaluation, and limited traceability of mentorship outcomes. The absence of structured, role-based interfaces and verification mechanisms can reduce trust and increase coordination overhead. There is a need for a centralized system that supports multi-role collaboration with auditable workflows.
+
+\section{Objectives}
+\begin{itemize}
+    \item Provide role-based access for startups, freelancers, mentors, and administrators.
+    \item Enable project posting, proposal submission, review, and assignment.
+    \item Support mentorship session requests, scheduling, and feedback.
+    \item Integrate AI-assisted verification of freelancer and mentor profiles.
+    \item Provide transparent notifications and status tracking across workflows.
+\end{itemize}
+
+\section{System Overview}
+The platform is implemented as a Django web application using modular apps (accounts, startup, freelancer, mentors, projects). It supports authentication via a custom user model with role-based access control. Key workflows include project creation, proposal submission, proposal ranking, freelancer assignment, milestone tracking, and mentorship session management.
+
+\section{Architecture}
+The system follows a standard web application architecture:
+\begin{itemize}
+    \item \textbf{Frontend:} Django templates with HTML/CSS/JS for role-specific dashboards.
+    \item \textbf{Backend:} Django (Python) with modular apps and REST-like views.
+    \item \textbf{Database:} SQLite for development, with provision to migrate to PostgreSQL/MySQL for production.
+    \item \textbf{AI Services:} Gemini API for verification and proposal scoring.
+\end{itemize}
+
+\section{Key Modules}
+\subsection{Authentication and Roles}
+A custom user model defines roles: Startup, Freelancer, Mentor, Investor, and Admin. Permissions and dashboards adapt per role.
+
+\subsection{Project and Proposal Management}
+Startups create projects with domain, requirements, and timelines. Freelancers submit proposals with attachments and expected terms. Proposals are ranked using AI-assisted scoring and may be approved or rejected by startups.
+
+\subsection{Mentorship Management}
+Startups request sessions with mentors. Mentors approve, schedule, and provide feedback, while startups rate mentorship outcomes.
+
+\subsection{AI-Assisted Verification}
+Freelancer and mentor profiles can include GitHub links and certificates. AI analysis generates verification status and fraud scores to improve trust.
+
+\section{Database Design}
+Core entities include CustomUser, StartupProfile, FreelancerProfile, MentorProfile, Project, ProjectProposal, ProjectAssignment, Milestone, MentorshipSession, Notification, and Message. Relationships are implemented using Django ORM with foreign key constraints.
+
+\section{Implementation Highlights}
+The system uses Django forms for validation and structured data entry. Notifications are generated for key actions such as proposal approval and session scheduling. AI verification is integrated asynchronously to avoid blocking user workflows.
+
+\section{Results and Discussion}
+The platform consolidates incubation workflows into a single interface, reduces manual coordination, and introduces trust mechanisms through verification and scoring. Role-based dashboards and notifications improve visibility of project status and mentoring activity.
+
+\section{Conclusion}
+The Startup \& Freelancer Incubation Management System provides a structured environment for startups, freelancers, and mentors to collaborate efficiently. Future enhancements can include payment escrow, advanced analytics, mobile support, and smarter AI-based matching.
+
+\section*{Acknowledgment}
+We acknowledge the guidance of Remya R and the support of the Department of Computer Science and Engineering, FISAT.
+
+\begin{thebibliography}{1}
+\bibitem{django}
+Django Software Foundation, \emph{Django Documentation}. [Online]. Available: \url{https://www.djangoproject.com/}
+\end{thebibliography}
+
+\end{document}

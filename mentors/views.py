@@ -5,6 +5,7 @@ from django.views import View
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseForbidden
+from .ai_verifier import trigger_verification_async
 import secrets
 
 
@@ -29,6 +30,7 @@ class MentorSignupView(View):
             profile = profile_form.save(commit=False)
             profile.user = user
             profile.save()
+            trigger_verification_async(profile.id)
             login(request, user)
             return redirect("mentors:dashboard")
         return render(request, 'mentorsignup.html', {'user_form': user_form, 'profile_form': profile_form})
